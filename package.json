@@ -1,0 +1,23 @@
+{
+  "name": "smart-finance-management-system",
+  "version": "1.0.0",
+  "description": "Production-ready Smart Finance Management System for Daily Finance, Weekly Finance, and Chitti (Chit Fund)",
+  "scripts": {
+    "server": "npm --prefix server run dev",
+    "client": "npm --prefix client run dev",
+    "seed": "npm --prefix server run seed",
+    "test:calc": "npm --prefix server run test",
+    "build:server": "npm --prefix server run build",
+    "build:client": "npm --prefix client run build"
+  },
+  "keywords": [
+    "finance",
+    "daily-finance",
+    "weekly-finance",
+    "chit-fund",
+    "chitti",
+    "microfinance"
+  ],
+  "author": "",
+  "license": "ISC"
+}
