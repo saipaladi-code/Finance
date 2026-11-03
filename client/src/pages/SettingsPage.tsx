@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Building2,
   QrCode,
@@ -14,6 +15,7 @@ import { api } from '../services/api.js';
 import { useAuth } from '../context/AuthContext.js';
 
 export const SettingsPage: React.FC = () => {
+  const { t } = useTranslation();
   const { businessSettings, refreshSettings } = useAuth();
   const [activeTab, setActiveTab] = useState<'business' | 'payment' | 'finance' | 'security'>('business');
 
@@ -76,7 +78,7 @@ export const SettingsPage: React.FC = () => {
     try {
       const res = await api.updateSettings(businessForm);
       if (res.success) {
-        setSaveSuccess('Settings successfully updated and saved.');
+        setSaveSuccess(t('settings.savedSuccess'));
         await refreshSettings();
         setTimeout(() => setSaveSuccess(''), 4000);
       } else {
@@ -120,71 +122,73 @@ export const SettingsPage: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Admin System Settings</h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Configure business identity, UPI & QR codes, receipt prefixes, and account security
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#142B4A] tracking-tight">
+            {t('settings.title')}
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
+            {t('settings.subtitle')}
           </p>
         </div>
       </div>
 
       {saveSuccess && (
-        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
-          <CheckCircle className="w-4 h-4 shrink-0 text-emerald-600" />
+        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm font-semibold flex items-center gap-2">
+          <CheckCircle className="w-5 h-5 shrink-0 text-emerald-600" />
           <span>{saveSuccess}</span>
         </div>
       )}
 
       {saveError && (
-        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm font-semibold flex items-center gap-2">
+          <AlertCircle className="w-5 h-5 shrink-0 text-rose-600" />
           <span>{saveError}</span>
         </div>
       )}
 
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
         {/* Navigation Tabs */}
-        <div className="flex flex-wrap border-b border-slate-200 bg-slate-50/70 p-2 gap-1 text-xs font-semibold">
+        <div className="flex flex-wrap border-b border-slate-200 bg-[#F5F7FB] p-2 gap-1 text-xs sm:text-sm font-bold">
           <button
             onClick={() => setActiveTab('business')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all ${
               activeTab === 'business'
-                ? 'bg-white text-blue-700 shadow-xs'
+                ? 'bg-white text-blue-700 shadow-xs font-black'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Building2 className="w-4 h-4" /> Business Profile
+            <Building2 className="w-4 h-4" /> {t('settings.businessProfile')}
           </button>
           <button
             onClick={() => setActiveTab('payment')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all ${
               activeTab === 'payment'
-                ? 'bg-white text-purple-700 shadow-xs'
+                ? 'bg-white text-purple-700 shadow-xs font-black'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <QrCode className="w-4 h-4" /> UPI & QR Settings
+            <QrCode className="w-4 h-4" /> {t('settings.paymentSettings')}
           </button>
           <button
             onClick={() => setActiveTab('finance')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all ${
               activeTab === 'finance'
-                ? 'bg-white text-emerald-700 shadow-xs'
+                ? 'bg-white text-emerald-700 shadow-xs font-black'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Sliders className="w-4 h-4" /> Finance & Receipt Rules
+            <Sliders className="w-4 h-4" /> Receipt & Finance Rules
           </button>
           <button
             onClick={() => setActiveTab('security')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all ${
               activeTab === 'security'
-                ? 'bg-white text-rose-700 shadow-xs'
+                ? 'bg-white text-rose-700 shadow-xs font-black'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <KeyRound className="w-4 h-4" /> Account Security
+            <KeyRound className="w-4 h-4" /> Security
           </button>
         </div>
 
@@ -193,7 +197,7 @@ export const SettingsPage: React.FC = () => {
           <form onSubmit={handleSaveSettings} className="p-6 space-y-4 max-w-2xl">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Business Name *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">{t('settings.businessName')} *</label>
                 <input
                   type="text"
                   required
@@ -216,7 +220,7 @@ export const SettingsPage: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Business Mobile Number *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">{t('settings.businessPhone')} *</label>
                 <input
                   type="text"
                   required
@@ -226,7 +230,7 @@ export const SettingsPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Business Email *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">{t('settings.businessEmail')} *</label>
                 <input
                   type="email"
                   required
@@ -238,7 +242,7 @@ export const SettingsPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Registered Business Address *</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">{t('settings.businessAddress')} *</label>
               <textarea
                 rows={2}
                 required
@@ -251,9 +255,9 @@ export const SettingsPage: React.FC = () => {
             <button
               type="submit"
               disabled={saving}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md shadow-blue-500/20 disabled:opacity-50"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 disabled:opacity-50"
             >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Profile
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} {t('settings.saveSettings')}
             </button>
           </form>
         )}
@@ -263,7 +267,7 @@ export const SettingsPage: React.FC = () => {
           <form onSubmit={handleSaveSettings} className="p-6 space-y-4 max-w-2xl">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Primary Business UPI ID *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">{t('settings.upiId')} *</label>
                 <input
                   type="text"
                   required
@@ -286,17 +290,17 @@ export const SettingsPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600 leading-relaxed">
-              <p className="font-bold text-slate-800 mb-1">Dynamic UPI Generation:</p>
+            <div className="p-4 rounded-2xl bg-[#F5F7FB] border border-slate-200 text-xs text-slate-600 leading-relaxed">
+              <p className="font-bold text-slate-800 mb-1">Dynamic UPI QR Support:</p>
               The system automatically renders standard, scannable QR codes for Google Pay, PhonePe, and Paytm encoded with your UPI ID and the exact installment amount requested from each customer.
             </div>
 
             <button
               type="submit"
               disabled={saving}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md shadow-blue-500/20 disabled:opacity-50"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 disabled:opacity-50"
             >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Payment Settings
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} {t('settings.saveSettings')}
             </button>
           </form>
         )}
@@ -348,9 +352,9 @@ export const SettingsPage: React.FC = () => {
             <button
               type="submit"
               disabled={saving}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md shadow-blue-500/20 disabled:opacity-50"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 disabled:opacity-50"
             >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Finance Rules
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} {t('settings.saveSettings')}
             </button>
           </form>
         )}
@@ -369,11 +373,10 @@ export const SettingsPage: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">New Secure Password *</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">New Password *</label>
               <input
                 type="password"
                 required
-                minLength={6}
                 value={passwords.newPassword}
                 onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
                 className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300"
@@ -384,7 +387,6 @@ export const SettingsPage: React.FC = () => {
               <input
                 type="password"
                 required
-                minLength={6}
                 value={passwords.confirmPassword}
                 onChange={(e) => setPasswords({ ...passwords, confirmPassword: e.target.value })}
                 className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300"
@@ -394,7 +396,7 @@ export const SettingsPage: React.FC = () => {
             <button
               type="submit"
               disabled={saving}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs shadow-md shadow-rose-500/20 disabled:opacity-50"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md disabled:opacity-50"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />} Update Password
             </button>
@@ -404,4 +406,3 @@ export const SettingsPage: React.FC = () => {
     </div>
   );
 };
-

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   CalendarDays,
   Search,
@@ -8,9 +9,7 @@ import {
   Eye,
   X,
   CreditCard,
-  FileDown,
   Loader2,
-  Calendar,
 } from 'lucide-react';
 import { api } from '../services/api.js';
 import { FinanceAccount, Customer, Payment, Installment } from '../types/index.js';
@@ -19,6 +18,7 @@ import { CollectPaymentModal } from '../components/common/CollectPaymentModal.js
 import { ReceiptModal } from '../components/common/ReceiptModal.js';
 
 export const WeeklyFinancePage: React.FC = () => {
+  const { t } = useTranslation();
   const [accounts, setAccounts] = useState<FinanceAccount[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -119,7 +119,7 @@ export const WeeklyFinancePage: React.FC = () => {
         setShowAddModal(false);
         loadData();
       } else {
-        setFormError(res.message || 'Error creating weekly loan.');
+        setFormError(res.message || 'Error creating weekly finance account.');
       }
     } catch (err: any) {
       setFormError(err.message || 'Server error creating weekly loan.');
@@ -142,11 +142,13 @@ export const WeeklyFinancePage: React.FC = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Weekly Finance Management</h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Explicit interest loan accounting, scheduled weekly collection days, and ledger
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#142B4A] tracking-tight">
+            {t('weeklyFinance.title')}
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
+            {t('weeklyFinance.subtitle')}
           </p>
         </div>
         <button
@@ -154,148 +156,142 @@ export const WeeklyFinancePage: React.FC = () => {
             setFormError('');
             setShowAddModal(true);
           }}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md shadow-blue-500/20 transition-all self-start sm:self-auto"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-500/20 transition-all self-start sm:self-auto"
         >
-          <Plus className="w-4 h-4" /> Issue Weekly Loan
+          <Plus className="w-4 h-4" /> {t('weeklyFinance.addNewLoan')}
         </button>
       </div>
 
       {/* Filters & Search */}
-      <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search customer name, phone, account..."
+            placeholder={t('common.searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[#F5F7FB] focus:bg-white transition-all"
           />
         </div>
 
-        <div className="flex items-center gap-3 w-full md:w-auto">
+        <div className="flex items-center gap-2 flex-wrap w-full md:w-auto">
           {/* Collection Day Filter */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-semibold text-slate-500">Day:</span>
-            <select
-              value={dayFilter}
-              onChange={(e) => setDayFilter(e.target.value)}
-              className="px-3 py-1.5 text-xs rounded-xl border border-slate-300 bg-white font-medium text-slate-700"
-            >
-              <option value="all">All Days</option>
-              <option value="Monday">Monday</option>
-              <option value="Tuesday">Tuesday</option>
-              <option value="Wednesday">Wednesday</option>
-              <option value="Thursday">Thursday</option>
-              <option value="Friday">Friday</option>
-              <option value="Saturday">Saturday</option>
-              <option value="Sunday">Sunday</option>
-            </select>
-          </div>
+          <select
+            value={dayFilter}
+            onChange={(e) => setDayFilter(e.target.value)}
+            className="px-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 bg-white font-medium text-slate-700"
+          >
+            <option value="all">{t('weeklyFinance.collectionDay')}: {t('common.all')}</option>
+            <option value="Monday">Monday</option>
+            <option value="Tuesday">Tuesday</option>
+            <option value="Wednesday">Wednesday</option>
+            <option value="Thursday">Thursday</option>
+            <option value="Friday">Friday</option>
+            <option value="Saturday">Saturday</option>
+            <option value="Sunday">Sunday</option>
+          </select>
 
           {/* Status Filter */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-semibold text-slate-500">Status:</span>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-1.5 text-xs rounded-xl border border-slate-300 bg-white font-medium text-slate-700"
-            >
-              <option value="all">All ({accounts.length})</option>
-              <option value="active">Active Only</option>
-              <option value="closed">Closed</option>
-              <option value="defaulted">Defaulted</option>
-            </select>
-          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 bg-white font-medium text-slate-700"
+          >
+            <option value="all">{t('common.filter')}: {t('common.all')} ({accounts.length})</option>
+            <option value="active">{t('common.active')}</option>
+            <option value="closed">{t('common.closed')}</option>
+            <option value="defaulted">{t('common.overdue')}</option>
+          </select>
         </div>
       </div>
 
       {/* Weekly Accounts Table */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider bg-slate-50/80">
-                <th className="py-3 px-4">Account No</th>
-                <th className="py-3 px-4">Customer</th>
-                <th className="py-3 px-4">Principal Loan</th>
-                <th className="py-3 px-4">Explicit Interest</th>
-                <th className="py-3 px-4">Weekly Installment</th>
-                <th className="py-3 px-4">Total Paid (Weeks)</th>
-                <th className="py-3 px-4">Remaining Balance</th>
-                <th className="py-3 px-4">Collection Day</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+              <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider bg-[#F5F7FB]">
+                <th className="py-3 px-4">{t('receiptModal.accountNo')}</th>
+                <th className="py-3 px-4">{t('customers.name')} & {t('customers.mobile')}</th>
+                <th className="py-3 px-4">{t('weeklyFinance.principalAmount')}</th>
+                <th className="py-3 px-4">{t('weeklyFinance.weeklyInstallment')}</th>
+                <th className="py-3 px-4">{t('weeklyFinance.collectionDay')}</th>
+                <th className="py-3 px-4">{t('customers.totalRepaid')}</th>
+                <th className="py-3 px-4">{t('customers.outstandingBalance')}</th>
+                <th className="py-3 px-4">{t('weeklyFinance.nextPaymentDate')}</th>
+                <th className="py-3 px-4 text-right">{t('common.actions')}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-xs">
+            <tbody className="divide-y divide-slate-100 text-xs sm:text-sm">
               {loading ? (
                 <tr>
                   <td colSpan={9} className="py-12 text-center text-slate-400">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-blue-600" />
-                    Loading weekly accounts...
+                    {t('common.loading')}
                   </td>
                 </tr>
               ) : accounts.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="py-12 text-center text-slate-400">
-                    No weekly finance accounts found.
+                    {t('weeklyFinance.emptyWeekly')}
                   </td>
                 </tr>
               ) : (
                 accounts.map((acc: any) => (
                   <tr key={acc._id} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="py-3 px-4 font-mono font-bold text-slate-800">
+                    <td className="py-3.5 px-4 font-mono font-bold text-slate-800">
                       {acc.accountNumber}
                       <span className="block text-[10px] text-slate-400 font-sans">
-                        {acc.totalInstallments} weeks
+                        {acc.totalInstallments} {t('weeklyFinance.numberOfWeeks')}
                       </span>
                     </td>
-                    <td className="py-3 px-4">
-                      <p className="font-bold text-slate-900">{acc.customer.name}</p>
+                    <td className="py-3.5 px-4">
+                      <p className="font-bold text-slate-900">{acc.customer?.name}</p>
                       <p className="text-[11px] text-slate-500 font-mono flex items-center gap-1">
-                        <Phone className="w-3 h-3 text-slate-400" /> {acc.customer.phone}
+                        <Phone className="w-3 h-3 text-slate-400" /> {acc.customer?.phone}
                       </p>
                     </td>
-                    <td className="py-3 px-4 font-bold text-slate-800">
+                    <td className="py-3.5 px-4 font-bold text-slate-900">
                       {formatCurrency(acc.principal)}
-                    </td>
-                    <td className="py-3 px-4 font-semibold text-indigo-600">
-                      {formatCurrency(acc.interestAmount)}
                       <span className="block text-[10px] text-slate-400 font-normal">
-                        Total Repay: {formatCurrency(acc.totalRepaymentAmount)}
+                        +{formatCurrency(acc.interestAmount)} {t('weeklyFinance.interestAmount')}
                       </span>
                     </td>
-                    <td className="py-3 px-4 font-semibold text-blue-700">
-                      {formatCurrencyExact(acc.installmentAmount)}/week
+                    <td className="py-3.5 px-4 font-bold text-indigo-700">
+                      {formatCurrencyExact(acc.installmentAmount)}
                     </td>
-                    <td className="py-3 px-4 font-semibold text-emerald-600">
-                      {formatCurrencyExact(acc.totalPaid)}
-                      <span className="block text-[10px] text-slate-400 font-normal">
-                        {acc.paidWeeks}/{acc.totalInstallments} weeks settled
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 font-extrabold text-rose-600">
-                      {formatCurrencyExact(acc.remainingBalance)}
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="px-2 py-0.5 rounded-md font-semibold text-[11px] bg-slate-100 text-slate-700">
+                    <td className="py-3.5 px-4">
+                      <span className="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100">
                         {acc.collectionDay || 'Monday'}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right">
+                    <td className="py-3.5 px-4 font-bold text-emerald-600">
+                      {formatCurrencyExact(acc.totalPaid)}
+                      <span className="block text-[10px] text-slate-400 font-normal">
+                        {acc.completedInstallments}/{acc.totalInstallments} {t('weeklyFinance.paidWeeks')}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 font-black text-rose-600">
+                      {formatCurrencyExact(acc.remainingBalance)}
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-slate-600">
+                      {formatDate(acc.nextDueDate)}
+                    </td>
+                    <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         {acc.status === 'active' && acc.remainingBalance > 0 && (
                           <button
                             onClick={() => setCollectAccount(acc)}
-                            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg shadow-xs transition-colors"
+                            className="px-3 py-1.5 bg-[#16A34A] hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors"
                           >
-                            Collect
+                            {t('dashboard.collect')}
                           </button>
                         )}
                         <button
                           onClick={() => handleOpenDetails(acc._id)}
-                          className="p-1.5 rounded-lg text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                          title="View Weekly Schedule & History"
+                          className="p-2 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                          title="Schedule & Ledger"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
@@ -309,20 +305,18 @@ export const WeeklyFinancePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Issue Weekly Loan Modal */}
+      {/* Add New Weekly Loan Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
           <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 bg-[#0f172a] text-white flex items-center justify-between">
+            <div className="px-6 py-4 bg-[#142B4A] text-white flex items-center justify-between">
               <div>
-                <h2 className="text-base font-bold text-white">Issue Weekly Finance Loan</h2>
-                <p className="text-xs text-slate-300">
-                  e.g. ₹10,000 principal + ₹2,000 interest = ₹12,000 in 12 weeks
-                </p>
+                <h2 className="text-base font-bold text-white">{t('weeklyFinance.addNewLoan')}</h2>
+                <p className="text-xs text-slate-300">₹10,000 + ₹2,000 interest = ₹12,000 in 12 weeks</p>
               </div>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-[#1B375E] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -337,14 +331,14 @@ export const WeeklyFinancePage: React.FC = () => {
 
               {/* Customer Selector */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Select Customer *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">{t('weeklyFinance.selectCustomer')} *</label>
                 <select
                   required
                   value={newLoan.customerId}
                   onChange={(e) => setNewLoan({ ...newLoan, customerId: e.target.value })}
                   className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 bg-white font-medium text-slate-800"
                 >
-                  <option value="">-- Choose registered customer --</option>
+                  <option value="">-- {t('weeklyFinance.selectCustomer')} --</option>
                   {customers.map((c) => (
                     <option key={c._id} value={c._id}>
                       {c.name} ({c.customerId}) - {c.phone}
@@ -353,10 +347,10 @@ export const WeeklyFinancePage: React.FC = () => {
                 </select>
               </div>
 
-              {/* Principal & Explicit Interest */}
+              {/* Principal & Interest Amount */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Loan Principal (₹) *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">{t('weeklyFinance.principalAmount')} *</label>
                   <input
                     type="number"
                     min="1000"
@@ -368,9 +362,7 @@ export const WeeklyFinancePage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Explicit Interest (₹) *
-                  </label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">{t('weeklyFinance.interestAmount')} (₹) *</label>
                   <input
                     type="number"
                     min="0"
@@ -378,47 +370,38 @@ export const WeeklyFinancePage: React.FC = () => {
                     required
                     value={newLoan.interestAmount}
                     onChange={(e) => handleInterestAmountChange(Number(e.target.value))}
-                    className="w-full px-3.5 py-2 text-xs font-bold text-indigo-700 rounded-xl border border-slate-300"
+                    className="w-full px-3.5 py-2 text-xs font-bold text-slate-900 rounded-xl border border-slate-300"
                   />
                 </div>
               </div>
 
-              {/* Weekly Installment & Weeks */}
+              {/* Installment Amount & Weeks */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Weekly Installment (₹)</label>
-                  <input
-                    type="number"
-                    min="10"
-                    required
-                    value={newLoan.installmentAmount}
-                    onChange={(e) => {
-                      const weekly = Number(e.target.value);
-                      const w = weekly > 0 ? Math.ceil(newLoan.totalRepaymentAmount / weekly) : 12;
-                      setNewLoan({
-                        ...newLoan,
-                        installmentAmount: weekly,
-                        totalInstallments: w,
-                      });
-                    }}
-                    className="w-full px-3.5 py-2 text-xs font-bold text-blue-700 rounded-xl border border-slate-300"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Number of Weeks</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">{t('weeklyFinance.weeklyInstallment')} *</label>
                   <input
                     type="number"
                     min="1"
-                    max="104"
+                    required
+                    value={newLoan.installmentAmount}
+                    onChange={(e) => setNewLoan({ ...newLoan, installmentAmount: Number(e.target.value) })}
+                    className="w-full px-3.5 py-2 text-xs font-bold text-indigo-700 rounded-xl border border-slate-300"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">{t('weeklyFinance.numberOfWeeks')}</label>
+                  <input
+                    type="number"
+                    min="1"
                     required
                     value={newLoan.totalInstallments}
                     onChange={(e) => {
-                      const w = Number(e.target.value);
-                      const weekly = w > 0 ? Math.round(newLoan.totalRepaymentAmount / w) : 1000;
+                      const weeks = Number(e.target.value);
+                      const inst = weeks > 0 ? Math.round(newLoan.totalRepaymentAmount / weeks) : 1000;
                       setNewLoan({
                         ...newLoan,
-                        totalInstallments: w,
-                        installmentAmount: weekly,
+                        totalInstallments: weeks,
+                        installmentAmount: inst,
                       });
                     }}
                     className="w-full px-3.5 py-2 text-xs font-medium rounded-xl border border-slate-300"
@@ -426,42 +409,26 @@ export const WeeklyFinancePage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Calculation Summary Card */}
-              <div className="p-3.5 rounded-2xl bg-indigo-50/60 border border-indigo-100 flex justify-between items-center text-xs">
-                <div>
-                  <span className="text-slate-500 font-medium">Total Repayment:</span>
-                  <p className="text-base font-extrabold text-indigo-900 mt-0.5">
-                    {formatCurrency(newLoan.totalRepaymentAmount)}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <span className="text-slate-500 font-medium">Weekly Schedule:</span>
-                  <p className="text-xs font-semibold text-slate-700 mt-0.5">
-                    {newLoan.totalInstallments} weeks × {formatCurrency(newLoan.installmentAmount)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Collection Day & Date */}
+              {/* Collection Day & Start Date */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Weekly Collection Day</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">{t('weeklyFinance.collectionDay')}</label>
                   <select
                     value={newLoan.collectionDay}
                     onChange={(e) => setNewLoan({ ...newLoan, collectionDay: e.target.value })}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white font-medium"
+                    className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 bg-white"
                   >
-                    <option value="Monday">Every Monday</option>
-                    <option value="Tuesday">Every Tuesday</option>
-                    <option value="Wednesday">Every Wednesday</option>
-                    <option value="Thursday">Every Thursday</option>
-                    <option value="Friday">Every Friday</option>
-                    <option value="Saturday">Every Saturday</option>
-                    <option value="Sunday">Every Sunday</option>
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                    <option value="Saturday">Saturday</option>
+                    <option value="Sunday">Sunday</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Starting Date</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">{t('weeklyFinance.startDate')}</label>
                   <input
                     type="date"
                     required
@@ -472,14 +439,20 @@ export const WeeklyFinancePage: React.FC = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Collection Agent</label>
-                <input
-                  type="text"
-                  value={newLoan.collectionAgent}
-                  onChange={(e) => setNewLoan({ ...newLoan, collectionAgent: e.target.value })}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300"
-                />
+              {/* Calculation Summary */}
+              <div className="p-3.5 rounded-2xl bg-[#F5F7FB] border border-slate-200 flex justify-between items-center text-xs">
+                <div>
+                  <span className="text-slate-500 font-medium">{t('weeklyFinance.totalRepayment')}:</span>
+                  <p className="text-base font-black text-indigo-900 mt-0.5">
+                    {formatCurrency(newLoan.totalRepaymentAmount)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <span className="text-slate-500 font-medium">Terms:</span>
+                  <p className="text-xs font-semibold text-slate-700 mt-0.5">
+                    {newLoan.totalInstallments} weeks × {formatCurrency(newLoan.installmentAmount)}
+                  </p>
+                </div>
               </div>
 
               <div className="pt-2 flex items-center justify-end gap-3">
@@ -488,15 +461,15 @@ export const WeeklyFinancePage: React.FC = () => {
                   onClick={() => setShowAddModal(false)}
                   className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md shadow-blue-500/20 disabled:opacity-50"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 disabled:opacity-50"
                 >
                   {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
-                  Create Weekly Loan
+                  {t('common.submit')}
                 </button>
               </div>
             </form>
@@ -516,154 +489,104 @@ export const WeeklyFinancePage: React.FC = () => {
         />
       )}
 
-      {/* Weekly Account Details Modal */}
+      {/* Details Modal */}
       {viewAccountDetails && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
           <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-5 bg-[#0f172a] text-white flex items-center justify-between">
+            <div className="px-6 py-5 bg-[#142B4A] text-white flex items-center justify-between">
               <div>
                 <h2 className="text-base font-bold text-white flex items-center gap-2">
-                  Weekly Loan: {viewAccountDetails.account.accountNumber}
+                  {viewAccountDetails.account.accountNumber}
                   <span className="text-xs px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-mono">
                     {viewAccountDetails.account.status.toUpperCase()}
                   </span>
                 </h2>
                 <p className="text-xs text-slate-300">
-                  Customer: {(viewAccountDetails.account.customerId as any)?.name} • Collection Day: {viewAccountDetails.account.collectionDay}
+                  Customer: {(viewAccountDetails.account.customerId as any)?.name} ({(viewAccountDetails.account.customerId as any)?.phone})
                 </p>
               </div>
               <button
                 onClick={() => setViewAccountDetails(null)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-[#1B375E] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-4 gap-3 p-5 bg-slate-50 border-b border-slate-200 text-xs">
+            {/* Quick Metrics */}
+            <div className="grid grid-cols-4 gap-3 p-5 bg-[#F5F7FB] border-b border-slate-200 text-xs">
               <div className="p-3 bg-white rounded-xl border border-slate-200">
-                <span className="text-slate-500 font-medium">Principal Loan</span>
-                <p className="text-base font-bold text-slate-900 mt-0.5">
+                <span className="text-slate-500 font-medium">{t('weeklyFinance.principalAmount')}</span>
+                <p className="text-sm font-bold text-slate-900 mt-0.5">
                   {formatCurrency(viewAccountDetails.account.principal)}
                 </p>
               </div>
               <div className="p-3 bg-white rounded-xl border border-slate-200">
-                <span className="text-slate-500 font-medium">Explicit Interest</span>
-                <p className="text-base font-bold text-indigo-600 mt-0.5">
-                  {formatCurrency(viewAccountDetails.account.interestAmount)}
+                <span className="text-slate-500 font-medium">{t('weeklyFinance.weeklyInstallment')}</span>
+                <p className="text-sm font-bold text-indigo-700 mt-0.5">
+                  {formatCurrencyExact(viewAccountDetails.account.installmentAmount)}
                 </p>
               </div>
               <div className="p-3 bg-white rounded-xl border border-slate-200">
-                <span className="text-slate-500 font-medium">Weekly Due</span>
-                <p className="text-base font-bold text-blue-600 mt-0.5">
-                  {formatCurrency(viewAccountDetails.account.installmentAmount)}
+                <span className="text-slate-500 font-medium">{t('customers.totalRepaid')}</span>
+                <p className="text-sm font-bold text-emerald-600 mt-0.5">
+                  {formatCurrencyExact(viewAccountDetails.account.totalPaid)}
                 </p>
               </div>
               <div className="p-3 bg-white rounded-xl border border-slate-200">
-                <span className="text-slate-500 font-medium">Remaining Balance</span>
-                <p className="text-base font-bold text-rose-600 mt-0.5">
-                  {formatCurrency(viewAccountDetails.account.remainingBalance)}
+                <span className="text-slate-500 font-medium">{t('customers.outstandingBalance')}</span>
+                <p className="text-sm font-black text-rose-600 mt-0.5">
+                  {formatCurrencyExact(viewAccountDetails.account.remainingBalance)}
                 </p>
               </div>
             </div>
 
-            <div className="p-6 max-h-[55vh] overflow-y-auto space-y-6">
-              <div>
-                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">
-                  Week-by-Week Installment Schedule ({viewAccountDetails.installments.length} Weeks)
-                </h3>
-                <div className="overflow-x-auto border border-slate-200 rounded-2xl">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 font-semibold uppercase">
-                      <tr>
-                        <th className="p-2.5">Week #</th>
-                        <th className="p-2.5">Due Date</th>
-                        <th className="p-2.5">Expected</th>
-                        <th className="p-2.5">Paid</th>
-                        <th className="p-2.5">Status</th>
-                        <th className="p-2.5 text-right">Settled Date</th>
+            {/* Schedule Table */}
+            <div className="p-6 max-h-[50vh] overflow-y-auto">
+              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">
+                Weekly Repayment Schedule
+              </h3>
+              <div className="border border-slate-200 rounded-2xl overflow-hidden">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#F5F7FB] border-b border-slate-200 text-[10px] text-slate-500 font-bold uppercase">
+                    <tr>
+                      <th className="p-2.5">Week #</th>
+                      <th className="p-2.5">Due Date</th>
+                      <th className="p-2.5">Expected</th>
+                      <th className="p-2.5">Paid</th>
+                      <th className="p-2.5">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {viewAccountDetails.installments.map((inst) => (
+                      <tr key={inst._id}>
+                        <td className="p-2.5 font-bold">Week #{inst.installmentNumber}</td>
+                        <td className="p-2.5 text-slate-600">{formatDate(inst.dueDate)}</td>
+                        <td className="p-2.5 font-semibold text-slate-800">{formatCurrencyExact(inst.expectedAmount)}</td>
+                        <td className="p-2.5 font-bold text-emerald-600">{formatCurrencyExact(inst.paidAmount)}</td>
+                        <td className="p-2.5">
+                          <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full uppercase ${getStatusBadgeClass(inst.status)}`}>
+                            {inst.status}
+                          </span>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {viewAccountDetails.installments.map((inst) => (
-                        <tr key={inst._id}>
-                          <td className="p-2.5 font-bold text-slate-800">Week {inst.installmentNumber}</td>
-                          <td className="p-2.5 text-slate-600">{formatDate(inst.dueDate)}</td>
-                          <td className="p-2.5 font-semibold text-slate-800">{formatCurrencyExact(inst.expectedAmount)}</td>
-                          <td className="p-2.5 font-semibold text-emerald-600">{formatCurrencyExact(inst.paidAmount)}</td>
-                          <td className="p-2.5">
-                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full uppercase ${getStatusBadgeClass(inst.status)}`}>
-                              {inst.status}
-                            </span>
-                          </td>
-                          <td className="p-2.5 text-right text-slate-500">
-                            {inst.paidDate ? formatDate(inst.paidDate) : '-'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">
-                  Payments Received ({viewAccountDetails.payments.length})
-                </h3>
-                <div className="overflow-x-auto border border-slate-200 rounded-2xl">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 font-semibold uppercase">
-                      <tr>
-                        <th className="p-2.5">Receipt #</th>
-                        <th className="p-2.5">Txn ID</th>
-                        <th className="p-2.5">Date</th>
-                        <th className="p-2.5">Method</th>
-                        <th className="p-2.5 text-right">Amount</th>
-                        <th className="p-2.5 text-right">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {viewAccountDetails.payments.map((p) => (
-                        <tr key={p._id}>
-                          <td className="p-2.5 font-bold text-blue-700">{p.receiptNumber}</td>
-                          <td className="p-2.5 font-mono text-slate-600">{p.transactionId}</td>
-                          <td className="p-2.5 text-slate-600">{formatDateTime(p.paymentDate)}</td>
-                          <td className="p-2.5 uppercase">{p.paymentMethod}</td>
-                          <td className="p-2.5 text-right font-extrabold text-emerald-600">
-                            {formatCurrencyExact(p.amount)}
-                          </td>
-                          <td className="p-2.5 text-right">
-                            <button
-                              onClick={() => setSelectedReceipt(p)}
-                              className="px-2 py-1 text-[11px] rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold"
-                            >
-                              Receipt
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
 
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+            <div className="px-6 py-4 bg-[#F5F7FB] border-t border-slate-200 flex justify-end">
               <button
                 onClick={() => setViewAccountDetails(null)}
-                className="px-5 py-2 text-xs font-semibold rounded-xl bg-slate-800 text-white hover:bg-slate-900 transition-colors"
+                className="px-5 py-2 text-xs font-semibold rounded-xl bg-slate-800 text-white hover:bg-slate-900"
               >
-                Close
+                {t('common.close')}
               </button>
             </div>
           </div>
         </div>
       )}
-
-      {selectedReceipt && (
-        <ReceiptModal payment={selectedReceipt} onClose={() => setSelectedReceipt(null)} />
-      )}
     </div>
   );
 };
-

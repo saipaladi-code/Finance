@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Receipt,
   Search,
@@ -19,6 +20,7 @@ import { ReceiptModal } from '../components/common/ReceiptModal.js';
 import { exportToExcel, exportToCSV } from '../utils/excelExport.js';
 
 export const PaymentsPage: React.FC = () => {
+  const { t } = useTranslation();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [totalCollected, setTotalCollected] = useState<number>(0);
@@ -124,41 +126,43 @@ export const PaymentsPage: React.FC = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Payments & Ledger</h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Centralized transaction registry, receipts, audit history, and reversals
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#142B4A] tracking-tight">
+            {t('payments.title')}
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
+            {t('payments.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={handleExportCSV}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 shadow-xs transition-colors"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 shadow-xs transition-colors"
           >
-            <FileDown className="w-3.5 h-3.5" /> CSV
+            <FileDown className="w-4 h-4" /> CSV
           </button>
           <button
             onClick={handleExportExcel}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-colors"
           >
-            <FileDown className="w-3.5 h-3.5" /> Export Excel
+            <FileDown className="w-4 h-4" /> Excel
           </button>
         </div>
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs space-y-4">
+      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-xs space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
           {/* Search */}
           <div className="md:col-span-2 relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Search by Txn ID, Receipt, Customer name..."
+              placeholder={t('common.searchPlaceholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[#F5F7FB] focus:bg-white transition-all"
             />
           </div>
 
@@ -167,12 +171,12 @@ export const PaymentsPage: React.FC = () => {
             <select
               value={financeType}
               onChange={(e) => setFinanceType(e.target.value)}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white font-medium"
+              className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 bg-white font-medium"
             >
-              <option value="all">All Segments</option>
-              <option value="daily">Daily Finance</option>
-              <option value="weekly">Weekly Finance</option>
-              <option value="chitti">Chitti (Chit Fund)</option>
+              <option value="all">{t('collections.allTypes')}</option>
+              <option value="daily">{t('nav.dailyFinance')}</option>
+              <option value="weekly">{t('nav.weeklyFinance')}</option>
+              <option value="chitti">{t('nav.chitti')}</option>
             </select>
           </div>
 
@@ -181,13 +185,13 @@ export const PaymentsPage: React.FC = () => {
             <select
               value={paymentMethod}
               onChange={(e) => setPaymentMethod(e.target.value)}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white font-medium"
+              className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 bg-white font-medium"
             >
-              <option value="all">All Modes</option>
-              <option value="cash">Cash Only</option>
-              <option value="gpay">Google Pay (UPI)</option>
-              <option value="phonepe">PhonePe (UPI)</option>
-              <option value="bank_transfer">Bank Transfer</option>
+              <option value="all">{t('payments.paymentMethod')}: {t('common.all')}</option>
+              <option value="cash">{t('payments.cash')}</option>
+              <option value="gpay">{t('payments.gpay')} (UPI)</option>
+              <option value="phonepe">{t('payments.phonepe')} (UPI)</option>
+              <option value="bank_transfer">{t('payments.bankTransfer')}</option>
             </select>
           </div>
 
@@ -195,7 +199,6 @@ export const PaymentsPage: React.FC = () => {
           <div className="flex gap-2">
             <input
               type="date"
-              placeholder="From"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
               className="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-300"
@@ -203,110 +206,100 @@ export const PaymentsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Totals Banner */}
-        <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
-          <span className="text-slate-500 font-medium">
-            Showing <strong className="text-slate-800">{payments.length}</strong> recorded transactions
+        {/* Aggregate Banner */}
+        <div className="flex items-center justify-between p-3.5 bg-[#F5F7FB] rounded-xl border border-slate-200 text-xs sm:text-sm">
+          <span className="font-semibold text-slate-600">
+            {t('payments.title')} ({payments.length})
           </span>
-          <span className="text-xs font-semibold text-slate-700">
-            Total Net Inflow:{' '}
-            <strong className="text-base font-black text-emerald-600">{formatCurrencyExact(totalCollected)}</strong>
+          <span className="font-bold text-slate-800">
+            {t('dashboard.totalCollected')}: <strong className="font-black text-emerald-700 text-base">{formatCurrencyExact(totalCollected)}</strong>
           </span>
         </div>
       </div>
 
-      {/* Transactions Table */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+      {/* Payments Table */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider bg-slate-50/80">
-                <th className="py-3 px-4">Receipt / Txn ID</th>
-                <th className="py-3 px-4">Customer</th>
-                <th className="py-3 px-4">Segment</th>
-                <th className="py-3 px-4">Date & Time</th>
-                <th className="py-3 px-4">Method & Ref</th>
-                <th className="py-3 px-4">Amount</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+              <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider bg-[#F5F7FB]">
+                <th className="py-3 px-4">{t('payments.receiptNo')}</th>
+                <th className="py-3 px-4">{t('dashboard.customer')}</th>
+                <th className="py-3 px-4">{t('payments.financeType')}</th>
+                <th className="py-3 px-4">{t('dashboard.paymentDate')}</th>
+                <th className="py-3 px-4">{t('dashboard.paymentMethod')}</th>
+                <th className="py-3 px-4">{t('dashboard.amount')}</th>
+                <th className="py-3 px-4">{t('common.status')}</th>
+                <th className="py-3 px-4 text-right">{t('common.actions')}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-xs">
+            <tbody className="divide-y divide-slate-100 text-xs sm:text-sm">
               {loading ? (
                 <tr>
                   <td colSpan={8} className="py-12 text-center text-slate-400">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-blue-600" />
-                    Loading payments ledger...
+                    {t('common.loading')}
                   </td>
                 </tr>
               ) : payments.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-12 text-center text-slate-400">
-                    No transactions found for the selected filters.
+                    {t('payments.emptyPayments')}
                   </td>
                 </tr>
               ) : (
                 payments.map((p) => (
-                  <tr
-                    key={p._id}
-                    className={`hover:bg-slate-50/70 transition-colors ${
-                      p.isReversed ? 'bg-rose-50/30 line-through text-slate-400' : ''
-                    }`}
-                  >
-                    <td className="py-3 px-4 font-mono font-bold text-slate-900">
+                  <tr key={p._id} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="py-3.5 px-4 font-mono font-bold text-slate-800">
                       <div>{p.receiptNumber}</div>
-                      <div className="text-[10px] text-slate-400 font-normal">{p.transactionId}</div>
+                      <div className="text-[10px] text-slate-400 font-sans">{p.transactionId}</div>
                     </td>
-                    <td className="py-3 px-4">
-                      <p className="font-bold text-slate-900">{p.customerId?.name || 'Customer'}</p>
-                      <p className="text-[10px] text-slate-400 font-mono">{p.customerId?.phone}</p>
+                    <td className="py-3.5 px-4 font-bold text-slate-900">
+                      {p.customerId?.name || 'Customer'}
                     </td>
-                    <td className="py-3 px-4 capitalize font-medium text-slate-700">
+                    <td className="py-3.5 px-4 font-medium text-slate-700 capitalize">
                       {p.financeType}
                     </td>
-                    <td className="py-3 px-4 text-slate-600">{formatDateTime(p.paymentDate)}</td>
-                    <td className="py-3 px-4">
-                      <span className="px-2 py-0.5 rounded-md font-semibold text-[10px] bg-slate-100 text-slate-700 uppercase">
+                    <td className="py-3.5 px-4 font-mono text-slate-600">
+                      {formatDateTime(p.paymentDate)}
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <span className="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-slate-100 text-slate-800 uppercase">
                         {p.paymentMethod}
                       </span>
-                      {p.transactionReference && (
-                        <span className="block font-mono text-[10px] text-slate-400 mt-0.5 truncate max-w-[120px]">
-                          {p.transactionReference}
-                        </span>
-                      )}
                     </td>
-                    <td className="py-3 px-4 font-extrabold text-emerald-700 text-sm">
+                    <td className="py-3.5 px-4 font-black text-emerald-600">
                       {formatCurrencyExact(p.amount)}
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3.5 px-4">
                       {p.isReversed ? (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700">
+                        <span className="px-2.5 py-1 text-[10px] font-bold rounded-full bg-rose-100 text-rose-800 uppercase">
                           Reversed
                         </span>
                       ) : (
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${getStatusBadgeClass(p.paymentStatus)}`}>
-                          {p.paymentStatus}
+                        <span className="px-2.5 py-1 text-[10px] font-bold rounded-full bg-emerald-50 text-emerald-700 uppercase border border-emerald-200">
+                          {t('common.paid')} ✓
                         </span>
                       )}
                     </td>
-                    <td className="py-3 px-4 text-right">
+                    <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => setSelectedReceipt(p)}
                           className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors"
-                          title="View Digital Receipt"
+                          title="View Official Receipt"
                         >
                           <Receipt className="w-4 h-4" />
                         </button>
                         {!p.isReversed && (
                           <button
                             onClick={() => {
-                              setReversalError('');
-                              setReversalReason('');
                               setReversingPayment(p);
+                              setReversalReason('');
+                              setReversalError('');
                             }}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                            title="Reverse Transaction (Audit Protected)"
+                            className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors"
+                            title="Reverse Payment Transaction"
                           >
                             <RotateCcw className="w-4 h-4" />
                           </button>
@@ -321,47 +314,49 @@ export const PaymentsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Reverse Payment Modal */}
+      {/* Reversal Modal */}
       {reversingPayment && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
           <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 bg-rose-900 text-white flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-rose-300" />
-                <h2 className="text-base font-bold text-white">Reverse Payment Transaction</h2>
-              </div>
+            <div className="px-6 py-4 bg-rose-950 text-white flex items-center justify-between">
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-rose-400" /> Reverse Payment
+              </h2>
               <button
                 onClick={() => setReversingPayment(null)}
-                className="p-1.5 rounded-lg text-rose-300 hover:text-white"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleReversePayment} className="p-6 space-y-4">
-              <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-900 leading-relaxed">
-                <p className="font-bold mb-1">Audit Protection Notice:</p>
-                <p>
-                  Reversing transaction <strong className="font-mono">{reversingPayment.transactionId}</strong> will
-                  re-open the customer's installment and restore their loan balance by{' '}
-                  <strong>{formatCurrencyExact(reversingPayment.amount)}</strong>.
-                </p>
-              </div>
-
               {reversalError && (
                 <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
                   {reversalError}
                 </div>
               )}
 
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-1">
+                <p>
+                  <strong>Receipt #:</strong> {reversingPayment.receiptNumber}
+                </p>
+                <p>
+                  <strong>Amount:</strong> {formatCurrencyExact(reversingPayment.amount)}
+                </p>
+                <p>
+                  <strong>Customer:</strong> {reversingPayment.customerId?.name}
+                </p>
+              </div>
+
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Reason for Reversal (Required for Audit Trail) *
+                  Reason for Transaction Reversal *
                 </label>
                 <textarea
                   required
                   rows={3}
-                  placeholder="e.g. Bounced cheque, wrong customer account selected, duplicate entry..."
+                  placeholder="e.g. Bounced cheque, duplicated cash entry, wrong customer..."
                   value={reversalReason}
                   onChange={(e) => setReversalReason(e.target.value)}
                   className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500"
@@ -374,14 +369,14 @@ export const PaymentsPage: React.FC = () => {
                   onClick={() => setReversingPayment(null)}
                   className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={reversalSubmitting}
-                  className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs shadow-md shadow-rose-600/20 disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md disabled:opacity-50"
                 >
-                  {reversalSubmitting ? 'Reversing...' : 'Confirm Reversal'}
+                  {reversalSubmitting ? t('common.loading') : 'Confirm Reversal'}
                 </button>
               </div>
             </form>
@@ -396,4 +391,3 @@ export const PaymentsPage: React.FC = () => {
     </div>
   );
 };
-

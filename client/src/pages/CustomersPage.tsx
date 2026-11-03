@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Users,
   Search,
   Plus,
   Phone,
-  MapPin,
-  FileText,
   Trash2,
   Edit,
   Eye,
@@ -14,14 +13,14 @@ import {
   X,
   CreditCard,
   History,
-  ShieldAlert,
   Loader2,
 } from 'lucide-react';
 import { api } from '../services/api.js';
 import { Customer } from '../types/index.js';
-import { formatCurrency, formatCurrencyExact, formatDate, formatDateTime, getStatusBadgeClass } from '../utils/formatters.js';
+import { formatCurrency, formatCurrencyExact, formatDate, getStatusBadgeClass } from '../utils/formatters.js';
 
 export const CustomersPage: React.FC = () => {
+  const { t } = useTranslation();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>('');
@@ -130,7 +129,7 @@ export const CustomersPage: React.FC = () => {
   const handleDeleteCustomer = async (c: Customer) => {
     if (
       window.confirm(
-        `Are you sure you want to delete customer ${c.name} (${c.customerId})? This action cannot be undone.`
+        `${t('common.confirmDelete')} (${c.name})`
       )
     ) {
       try {
@@ -160,151 +159,153 @@ export const CustomersPage: React.FC = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Header & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Customer Directory</h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Centralized database of borrowers, chit members, repayment metrics & balances
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#142B4A] tracking-tight">
+            {t('customers.title')}
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
+            {t('customers.subtitle')}
           </p>
         </div>
         <button
           onClick={handleOpenAdd}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md shadow-blue-500/20 transition-all self-start sm:self-auto"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-500/20 transition-all self-start sm:self-auto"
         >
-          <Plus className="w-4 h-4" /> Register New Customer
+          <Plus className="w-4 h-4" /> {t('customers.addCustomer')}
         </button>
       </div>
 
       {/* Filters & Search Bar */}
-      <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Search */}
         <div className="relative w-full md:w-96">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search by customer name, mobile, ID, address..."
+            placeholder={t('common.searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[#F5F7FB] focus:bg-white transition-all"
           />
         </div>
 
         {/* Status Filter */}
         <div className="flex items-center gap-2 w-full md:w-auto">
-          <span className="text-xs font-semibold text-slate-500 shrink-0">Filter Status:</span>
+          <span className="text-xs font-semibold text-slate-500 shrink-0">{t('common.filter')}:</span>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-1.5 text-xs rounded-xl border border-slate-300 bg-white font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 bg-white font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="all">All Statuses ({customers.length})</option>
-            <option value="active">Active Only</option>
-            <option value="defaulter">Defaulters</option>
-            <option value="inactive">Inactive</option>
+            <option value="all">{t('common.all')} ({customers.length})</option>
+            <option value="active">{t('common.active')}</option>
+            <option value="defaulter">{t('common.overdue')}</option>
+            <option value="inactive">{t('common.inactive')}</option>
           </select>
         </div>
       </div>
 
       {/* Customers Table */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider bg-slate-50/80">
-                <th className="py-3 px-4">Customer ID</th>
-                <th className="py-3 px-4">Name & Phone</th>
-                <th className="py-3 px-4">Address</th>
-                <th className="py-3 px-4">Active Accounts</th>
-                <th className="py-3 px-4">Total Borrowed</th>
-                <th className="py-3 px-4">Total Paid</th>
-                <th className="py-3 px-4">Outstanding</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+              <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider bg-[#F5F7FB]">
+                <th className="py-3 px-4">ID</th>
+                <th className="py-3 px-4">{t('customers.name')} & {t('customers.mobile')}</th>
+                <th className="py-3 px-4">{t('customers.address')}</th>
+                <th className="py-3 px-4">{t('customers.activeLoans')}</th>
+                <th className="py-3 px-4">{t('customers.totalBorrowed')}</th>
+                <th className="py-3 px-4">{t('customers.totalRepaid')}</th>
+                <th className="py-3 px-4">{t('customers.outstandingBalance')}</th>
+                <th className="py-3 px-4">{t('common.status')}</th>
+                <th className="py-3 px-4 text-right">{t('common.actions')}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-xs">
+            <tbody className="divide-y divide-slate-100 text-xs sm:text-sm">
               {loading ? (
                 <tr>
                   <td colSpan={9} className="py-12 text-center text-slate-400">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-blue-600" />
-                    Loading customers...
+                    {t('common.loading')}
                   </td>
                 </tr>
               ) : customers.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="py-12 text-center text-slate-400">
-                    No customers found matching search criteria.
+                    {t('customers.noCustomers')}
                   </td>
                 </tr>
               ) : (
                 customers.map((c) => (
                   <tr key={c._id} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="py-3 px-4 font-mono font-bold text-blue-700">{c.customerId}</td>
-                    <td className="py-3 px-4">
+                    <td className="py-3.5 px-4 font-mono font-bold text-blue-700">{c.customerId}</td>
+                    <td className="py-3.5 px-4">
                       <p className="font-bold text-slate-900">{c.name}</p>
                       <p className="text-[11px] text-slate-500 font-mono flex items-center gap-1">
                         <Phone className="w-3 h-3 text-slate-400" /> {c.phone}
                       </p>
                     </td>
-                    <td className="py-3 px-4 text-slate-600 max-w-[200px] truncate" title={c.address}>
+                    <td className="py-3.5 px-4 text-slate-600 max-w-[200px] truncate" title={c.address}>
                       {c.address}
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3.5 px-4">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {c.dailyAccountsCount ? (
-                          <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-blue-50 text-blue-700 rounded-md border border-blue-100">
-                            Daily: {c.dailyAccountsCount}
+                          <span className="px-2 py-0.5 text-[10px] font-bold bg-blue-50 text-blue-700 rounded-md border border-blue-100">
+                            {t('nav.dailyFinance')}: {c.dailyAccountsCount}
                           </span>
                         ) : null}
                         {c.weeklyAccountsCount ? (
-                          <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-indigo-50 text-indigo-700 rounded-md border border-indigo-100">
-                            Weekly: {c.weeklyAccountsCount}
+                          <span className="px-2 py-0.5 text-[10px] font-bold bg-indigo-50 text-indigo-700 rounded-md border border-indigo-100">
+                            {t('nav.weeklyFinance')}: {c.weeklyAccountsCount}
                           </span>
                         ) : null}
                         {c.chittiMembershipCount ? (
-                          <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-amber-50 text-amber-700 rounded-md border border-amber-100">
-                            Chits: {c.chittiMembershipCount}
+                          <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-50 text-amber-700 rounded-md border border-amber-100">
+                            {t('nav.chitti')}: {c.chittiMembershipCount}
                           </span>
                         ) : null}
                         {!c.dailyAccountsCount && !c.weeklyAccountsCount && !c.chittiMembershipCount && (
-                          <span className="text-[10px] text-slate-400 italic">None</span>
+                          <span className="text-[10px] text-slate-400 italic">-</span>
                         )}
                       </div>
                     </td>
-                    <td className="py-3 px-4 font-semibold text-slate-800">
+                    <td className="py-3.5 px-4 font-bold text-slate-900">
                       {formatCurrency(c.totalBorrowed)}
                     </td>
-                    <td className="py-3 px-4 font-semibold text-emerald-600">
+                    <td className="py-3.5 px-4 font-bold text-emerald-600">
                       {formatCurrency(c.totalPaid)}
                     </td>
-                    <td className="py-3 px-4 font-extrabold text-rose-600">
+                    <td className="py-3.5 px-4 font-black text-rose-600">
                       {formatCurrency(c.totalOutstanding)}
                     </td>
-                    <td className="py-3 px-4">
-                      <span className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase ${getStatusBadgeClass(c.status)}`}>
-                        {c.status}
+                    <td className="py-3.5 px-4">
+                      <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full uppercase ${getStatusBadgeClass(c.status)}`}>
+                        {c.status === 'active' ? t('common.active') : c.status}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right">
+                    <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleViewProfile(c._id)}
-                          className="p-1.5 rounded-lg text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                          title="View Complete Financial Profile"
+                          className="p-2 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                          title={t('common.viewDetails')}
                         >
                           <Eye className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleOpenEdit(c)}
-                          className="p-1.5 rounded-lg text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
-                          title="Edit Details"
+                          className="p-2 rounded-xl text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                          title={t('common.edit')}
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteCustomer(c)}
-                          className="p-1.5 rounded-lg text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                          title="Delete Customer"
+                          className="p-2 rounded-xl text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                          title={t('common.delete')}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -322,13 +323,13 @@ export const CustomersPage: React.FC = () => {
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
           <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 bg-[#0f172a] text-white flex items-center justify-between">
+            <div className="px-6 py-4 bg-[#142B4A] text-white flex items-center justify-between">
               <h2 className="text-base font-bold text-white">
-                {editingCustomer ? 'Edit Customer' : 'Register New Customer'}
+                {editingCustomer ? t('customers.editCustomer') : t('customers.addCustomer')}
               </h2>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-[#1B375E] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -344,22 +345,22 @@ export const CustomersPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Full Name *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">{t('customers.name')} *</label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Suresh Kumar"
+                    placeholder={t('customers.enterName')}
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Mobile Number *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">{t('customers.mobile')} *</label>
                   <input
                     type="tel"
                     required
-                    placeholder="e.g. 9840012345"
+                    placeholder={t('customers.enterMobile')}
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
@@ -368,11 +369,11 @@ export const CustomersPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Complete Address *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">{t('customers.address')} *</label>
                 <textarea
                   required
                   rows={2}
-                  placeholder="Street, locality, landmarks..."
+                  placeholder={t('customers.enterAddress')}
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -381,21 +382,20 @@ export const CustomersPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">ID Proof Type</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">ID Proof</label>
                   <select
                     value={formData.idProofType}
                     onChange={(e) => setFormData({ ...formData, idProofType: e.target.value })}
                     className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white"
                   >
-                    <option value="Aadhaar">Aadhaar Card</option>
+                    <option value="Aadhaar">Aadhaar</option>
                     <option value="PAN">PAN Card</option>
                     <option value="Voter ID">Voter ID</option>
                     <option value="Driving License">Driving License</option>
-                    <option value="GST">GST Registration</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">ID Proof Number</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">{t('customers.aadhaar')}</label>
                   <input
                     type="text"
                     placeholder="e.g. 1234 5678 9012"
@@ -408,61 +408,25 @@ export const CustomersPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Guarantor Name</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">{t('customers.guarantorName')}</label>
                   <input
                     type="text"
-                    placeholder="e.g. K. Ramesh"
+                    placeholder="Guarantor Name"
                     value={formData.guarantorName}
                     onChange={(e) => setFormData({ ...formData, guarantorName: e.target.value })}
                     className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Guarantor Phone</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">{t('customers.guarantorPhone')}</label>
                   <input
                     type="tel"
-                    placeholder="e.g. 9840054321"
+                    placeholder="Guarantor Phone"
                     value={formData.guarantorPhone}
                     onChange={(e) => setFormData({ ...formData, guarantorPhone: e.target.value })}
                     className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Email (Optional)</label>
-                  <input
-                    type="email"
-                    placeholder="suresh@gmail.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Customer Status</label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white"
-                  >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                    <option value="defaulter">Defaulter</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Internal Notes</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Wholesale merchant, reliable payment history"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
               </div>
 
               <div className="pt-2 flex items-center justify-end gap-3">
@@ -471,20 +435,20 @@ export const CustomersPage: React.FC = () => {
                   onClick={() => setShowAddModal(false)}
                   className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={formSubmitting}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md shadow-blue-500/20 transition-all disabled:opacity-50"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all disabled:opacity-50"
                 >
                   {formSubmitting ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" /> Saving...
+                      <Loader2 className="w-4 h-4 animate-spin" /> {t('common.loading')}
                     </>
                   ) : (
                     <>
-                      <CheckCircle className="w-4 h-4" /> Save Customer
+                      <CheckCircle className="w-4 h-4" /> {t('common.save')}
                     </>
                   )}
                 </button>
@@ -501,12 +465,12 @@ export const CustomersPage: React.FC = () => {
             {profileLoading || !profileData ? (
               <div className="p-12 text-center text-slate-400">
                 <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-600" />
-                Loading complete customer portfolio...
+                {t('common.loading')}
               </div>
             ) : (
               <div>
                 {/* Header */}
-                <div className="px-6 py-5 bg-[#0f172a] text-white flex items-center justify-between">
+                <div className="px-6 py-5 bg-[#142B4A] text-white flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-xl font-bold text-white shadow-md">
                       {profileData.customer.name.charAt(0)}
@@ -525,29 +489,29 @@ export const CustomersPage: React.FC = () => {
                   </div>
                   <button
                     onClick={() => setSelectedProfileId(null)}
-                    className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                    className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-[#1B375E] transition-colors"
                   >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
                 {/* Portfolio Summary Metrics */}
-                <div className="grid grid-cols-3 gap-4 p-6 bg-slate-50 border-b border-slate-200">
-                  <div className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-xs">
-                    <span className="text-[11px] font-semibold text-slate-500 uppercase">Total Borrowed</span>
-                    <p className="text-xl font-bold text-slate-900 mt-1">
+                <div className="grid grid-cols-3 gap-4 p-6 bg-[#F5F7FB] border-b border-slate-200">
+                  <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs">
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase">{t('customers.totalBorrowed')}</span>
+                    <p className="text-xl font-black text-slate-900 mt-1">
                       {formatCurrencyExact(profileData.summary.totalBorrowed)}
                     </p>
                   </div>
-                  <div className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-xs">
-                    <span className="text-[11px] font-semibold text-slate-500 uppercase">Total Amount Paid</span>
-                    <p className="text-xl font-bold text-emerald-600 mt-1">
+                  <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs">
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase">{t('customers.totalRepaid')}</span>
+                    <p className="text-xl font-black text-emerald-600 mt-1">
                       {formatCurrencyExact(profileData.summary.totalPaid)}
                     </p>
                   </div>
-                  <div className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-xs">
-                    <span className="text-[11px] font-semibold text-slate-500 uppercase">Total Outstanding</span>
-                    <p className="text-xl font-bold text-rose-600 mt-1">
+                  <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs">
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase">{t('customers.outstandingBalance')}</span>
+                    <p className="text-xl font-black text-rose-600 mt-1">
                       {formatCurrencyExact(profileData.summary.totalOutstanding)}
                     </p>
                   </div>
@@ -558,29 +522,29 @@ export const CustomersPage: React.FC = () => {
                   {/* Daily & Weekly Accounts */}
                   <div>
                     <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3 flex items-center gap-2">
-                      <CreditCard className="w-4 h-4 text-blue-600" /> Active Finance Loans ({profileData.accounts.length})
+                      <CreditCard className="w-4 h-4 text-blue-600" /> {t('customers.activeLoans')} ({profileData.accounts.length})
                     </h3>
                     {profileData.accounts.length === 0 ? (
-                      <p className="text-xs text-slate-400 italic">No loans recorded for this customer.</p>
+                      <p className="text-xs text-slate-400 italic">No loans recorded.</p>
                     ) : (
                       <div className="space-y-2">
                         {profileData.accounts.map((acc: any) => (
                           <div
                             key={acc._id}
-                            className="p-3.5 rounded-2xl border border-slate-200 bg-slate-50/50 flex items-center justify-between"
+                            className="p-3.5 rounded-2xl border border-slate-200 bg-white shadow-xs flex items-center justify-between"
                           >
                             <div>
                               <span className="font-bold text-slate-900 font-mono text-xs">{acc.accountNumber}</span>
-                              <span className="ml-2 px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase bg-blue-100 text-blue-800">
-                                {acc.financeType}
+                              <span className="ml-2 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-blue-100 text-blue-800">
+                                {acc.financeType === 'daily' ? t('nav.dailyFinance') : t('nav.weeklyFinance')}
                               </span>
                               <p className="text-xs text-slate-500 mt-0.5">
                                 Principal: {formatCurrency(acc.principal)} • Installment: {formatCurrency(acc.installmentAmount)}
                               </p>
                             </div>
                             <div className="text-right">
-                              <span className="text-xs text-slate-400 block">Remaining</span>
-                              <span className="text-sm font-bold text-rose-600">{formatCurrencyExact(acc.remainingBalance)}</span>
+                              <span className="text-xs text-slate-400 block">{t('customers.outstandingBalance')}</span>
+                              <span className="text-sm font-black text-rose-600">{formatCurrencyExact(acc.remainingBalance)}</span>
                             </div>
                           </div>
                         ))}
@@ -591,16 +555,16 @@ export const CustomersPage: React.FC = () => {
                   {/* Chitti Memberships */}
                   <div>
                     <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3 flex items-center gap-2">
-                      <Users className="w-4 h-4 text-amber-600" /> Chit Fund Groups ({profileData.chitMemberships.length})
+                      <Users className="w-4 h-4 text-amber-600" /> {t('nav.chitti')} ({profileData.chitMemberships.length})
                     </h3>
                     {profileData.chitMemberships.length === 0 ? (
-                      <p className="text-xs text-slate-400 italic">No chit group memberships.</p>
+                      <p className="text-xs text-slate-400 italic">No chit memberships.</p>
                     ) : (
                       <div className="space-y-2">
                         {profileData.chitMemberships.map((cm: any) => (
                           <div
                             key={cm._id}
-                            className="p-3.5 rounded-2xl border border-slate-200 bg-amber-50/30 flex items-center justify-between"
+                            className="p-3.5 rounded-2xl border border-slate-200 bg-white shadow-xs flex items-center justify-between"
                           >
                             <div>
                               <span className="font-bold text-slate-900 text-xs">
@@ -611,54 +575,23 @@ export const CustomersPage: React.FC = () => {
                               </p>
                             </div>
                             <div className="text-right">
-                              <span className="text-xs text-slate-400 block">Total Contributed</span>
-                              <span className="text-sm font-bold text-emerald-600">{formatCurrencyExact(cm.totalPaid)}</span>
+                              <span className="text-xs text-slate-400 block">{t('customers.totalRepaid')}</span>
+                              <span className="text-sm font-black text-emerald-600">{formatCurrencyExact(cm.totalPaid)}</span>
                             </div>
                           </div>
                         ))}
                       </div>
                     )}
                   </div>
-
-                  {/* Lifetime Payments */}
-                  <div>
-                    <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3 flex items-center gap-2">
-                      <History className="w-4 h-4 text-emerald-600" /> Payment Ledger ({profileData.payments.length})
-                    </h3>
-                    <div className="overflow-x-auto border border-slate-200 rounded-2xl">
-                      <table className="w-full text-left text-xs">
-                        <thead className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 font-semibold uppercase">
-                          <tr>
-                            <th className="p-2.5">Date</th>
-                            <th className="p-2.5">Txn ID</th>
-                            <th className="p-2.5">Type</th>
-                            <th className="p-2.5">Method</th>
-                            <th className="p-2.5 text-right">Amount</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {profileData.payments.map((p: any) => (
-                            <tr key={p._id}>
-                              <td className="p-2.5 text-slate-600">{formatDate(p.paymentDate)}</td>
-                              <td className="p-2.5 font-mono text-slate-800">{p.transactionId}</td>
-                              <td className="p-2.5 capitalize">{p.financeType}</td>
-                              <td className="p-2.5 uppercase">{p.paymentMethod}</td>
-                              <td className="p-2.5 text-right font-bold text-emerald-600">{formatCurrencyExact(p.amount)}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+                <div className="px-6 py-4 bg-[#F5F7FB] border-t border-slate-200 flex justify-end">
                   <button
                     onClick={() => setSelectedProfileId(null)}
                     className="px-5 py-2 text-xs font-semibold rounded-xl bg-slate-800 text-white hover:bg-slate-900 transition-colors"
                   >
-                    Close Profile
+                    {t('common.close')}
                   </button>
                 </div>
               </div>
@@ -669,4 +602,3 @@ export const CustomersPage: React.FC = () => {
     </div>
   );
 };
-

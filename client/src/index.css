@@ -4,7 +4,8 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-800 antialiased font-sans min-h-screen selection:bg-blue-600 selection:text-white;
+    @apply bg-[#F5F7FB] text-[#1E293B] antialiased font-sans min-h-screen selection:bg-blue-600 selection:text-white;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
 }
 

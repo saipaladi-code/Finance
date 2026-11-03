@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { QRCodeSVG } from 'qrcode.react';
 import { X, Copy, Check, QrCode, Smartphone, Info } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.js';
@@ -7,6 +8,7 @@ import { formatCurrencyExact } from '../../utils/formatters.js';
 interface QrPaymentModalProps {
   amount: number;
   customerName?: string;
+  accountNumber?: string;
   accountReference?: string;
   onClose: () => void;
   onConfirmReference?: (ref: string, method: string) => void;
@@ -15,17 +17,20 @@ interface QrPaymentModalProps {
 export const QrPaymentModal: React.FC<QrPaymentModalProps> = ({
   amount,
   customerName,
+  accountNumber,
   accountReference,
   onClose,
   onConfirmReference,
 }) => {
+  const { t } = useTranslation();
   const { businessSettings } = useAuth();
   const [copied, setCopied] = useState<boolean>(false);
   const [selectedMethod, setSelectedMethod] = useState<'gpay' | 'phonepe' | 'upi'>('gpay');
   const [transactionRef, setTransactionRef] = useState<string>('');
 
   const upiId = businessSettings?.upiId || 'srilakshmifinance@okaxis';
-  const payeeName = businessSettings?.payeeName || businessSettings?.businessName || 'Sri Lakshmi Finance';
+  const payeeName = businessSettings?.payeeName || businessSettings?.businessName || 'Smart Finance';
+  const displayAccount = accountNumber || accountReference || '';
 
   // Construct standard UPI Payment String
   const upiString = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(
@@ -52,19 +57,19 @@ export const QrPaymentModal: React.FC<QrPaymentModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
       <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="px-6 py-4 bg-[#0f172a] text-white flex items-center justify-between">
+        <div className="px-6 py-4 bg-[#142B4A] text-white flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-white shadow-xs">
               <QrCode className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-white">Google Pay & PhonePe QR</h2>
-              <p className="text-[11px] text-slate-300">Scan & Pay via any UPI App</p>
+              <h2 className="text-sm font-bold text-white">{t('qrModal.title')}</h2>
+              <p className="text-[11px] text-slate-300">{t('qrModal.subtitle')}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-[#1B375E] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -73,14 +78,14 @@ export const QrPaymentModal: React.FC<QrPaymentModalProps> = ({
         {/* Modal Body */}
         <div className="p-6 space-y-4">
           {/* Amount Badge */}
-          <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-center">
+          <div className="p-3.5 rounded-2xl bg-[#F5F7FB] border border-slate-200 text-center">
             <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
-              Payment Amount
+              {t('qrModal.amountToPay')}
             </span>
             <p className="text-2xl font-black text-blue-700 mt-0.5">{formatCurrencyExact(amount)}</p>
             {customerName && (
               <p className="text-xs text-slate-600 font-medium mt-0.5">
-                {customerName} {accountReference ? `• ${accountReference}` : ''}
+                {customerName} {displayAccount ? `• ${displayAccount}` : ''}
               </p>
             )}
           </div>
@@ -133,13 +138,13 @@ export const QrPaymentModal: React.FC<QrPaymentModalProps> = ({
               />
             </div>
             <p className="text-[11px] font-medium text-slate-500 mt-3 text-center">
-              Scan with Google Pay, PhonePe, Paytm, or BHIM UPI
+              {t('qrModal.scanInstruction')}
             </p>
 
             {/* UPI ID Copy Field */}
-            <div className="mt-3 flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-xl border border-slate-200 w-full justify-between text-xs">
+            <div className="mt-3 flex items-center gap-2 px-3 py-1.5 bg-[#F5F7FB] rounded-xl border border-slate-200 w-full justify-between text-xs">
               <div className="truncate">
-                <span className="text-slate-400 font-medium mr-1.5">UPI ID:</span>
+                <span className="text-slate-400 font-medium mr-1.5">{t('qrModal.upiId')}:</span>
                 <span className="font-mono font-semibold text-slate-800">{upiId}</span>
               </div>
               <button
@@ -153,11 +158,11 @@ export const QrPaymentModal: React.FC<QrPaymentModalProps> = ({
             </div>
           </div>
 
-          {/* Manual Verification Advisory */}
+          {/* Verification Advisory */}
           <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 text-amber-900 text-xs border border-amber-200">
             <Info className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
             <p className="text-[11px] leading-relaxed">
-              <strong>Admin Notice:</strong> QR display does not mean automatic verification. Please confirm payment in your bank app and enter the 12-digit UTR/Reference number below to record the payment.
+              <strong>Notice:</strong> Please confirm received payment in your bank app and record the 12-digit UTR/Reference number.
             </p>
           </div>
 
@@ -186,9 +191,16 @@ export const QrPaymentModal: React.FC<QrPaymentModalProps> = ({
               </button>
             </form>
           )}
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+          >
+            {t('common.close')}
+          </button>
         </div>
       </div>
     </div>
   );
 };
-

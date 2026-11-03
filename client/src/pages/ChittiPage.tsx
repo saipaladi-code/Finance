@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Coins,
   Search,
@@ -23,6 +24,7 @@ import { formatCurrency, formatCurrencyExact, formatDate, formatDateTime, getSta
 import { ReceiptModal } from '../components/common/ReceiptModal.js';
 
 export const ChittiPage: React.FC = () => {
+  const { t } = useTranslation();
   const [groups, setGroups] = useState<ChitGroup[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -259,11 +261,13 @@ export const ChittiPage: React.FC = () => {
       </div>
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Chitti (Chit Fund) Management</h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Manage multi-ticket chit groups, member enrollments, auctions, dividend splits, and winner payouts
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#142B4A] tracking-tight">
+            {t('chitti.title')}
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
+            {t('chitti.subtitle')}
           </p>
         </div>
         <button
@@ -271,9 +275,9 @@ export const ChittiPage: React.FC = () => {
             setModalError('');
             setShowCreateGroupModal(true);
           }}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md shadow-blue-500/20 transition-all self-start sm:self-auto"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-500/20 transition-all self-start sm:self-auto"
         >
-          <Plus className="w-4 h-4" /> Create Chitti Group
+          <Plus className="w-4 h-4" /> {t('chitti.addNewGroup')}
         </button>
       </div>
 
@@ -282,11 +286,11 @@ export const ChittiPage: React.FC = () => {
         {loading ? (
           <div className="col-span-full py-12 text-center text-slate-400">
             <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-blue-600" />
-            Loading chit groups...
+            {t('common.loading')}
           </div>
         ) : groups.length === 0 ? (
           <div className="col-span-full py-12 text-center text-slate-400 text-xs">
-            No chit groups found. Click "Create Chitti Group" above to start one.
+            {t('chitti.emptyChitti')}
           </div>
         ) : (
           groups.map((grp) => (
@@ -296,38 +300,38 @@ export const ChittiPage: React.FC = () => {
             >
               <div>
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md">
+                  <span className="font-mono text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-100">
                     {grp.groupCode}
                   </span>
-                  <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full uppercase ${getStatusBadgeClass(grp.status)}`}>
-                    {grp.status}
+                  <span className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase ${getStatusBadgeClass(grp.status)}`}>
+                    {grp.status === 'active' ? t('common.active') : grp.status}
                   </span>
                 </div>
 
                 <h3 className="text-base font-bold text-slate-900 mt-2.5 line-clamp-1">{grp.groupName}</h3>
                 <p className="text-2xl font-black text-slate-900 mt-1">
                   {formatCurrency(grp.chitValue)}
-                  <span className="text-xs font-normal text-slate-400 ml-1">total value</span>
+                  <span className="text-xs font-normal text-slate-400 ml-1">{t('chitti.totalChitValue')}</span>
                 </p>
 
                 {/* Metrics */}
                 <div className="grid grid-cols-2 gap-2 mt-4 text-xs">
-                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                    <span className="text-[10px] text-slate-400 block font-medium">Monthly Dues</span>
+                  <div className="p-2.5 bg-[#F5F7FB] rounded-xl border border-slate-100">
+                    <span className="text-[10px] text-slate-500 block font-medium">{t('chitti.monthlyContribution')}</span>
                     <span className="font-bold text-slate-800">{formatCurrency(grp.monthlyContribution)}</span>
                   </div>
-                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                    <span className="text-[10px] text-slate-400 block font-medium">Due Date</span>
-                    <span className="font-bold text-slate-800">{grp.monthlyDueDate}th of month</span>
+                  <div className="p-2.5 bg-[#F5F7FB] rounded-xl border border-slate-100">
+                    <span className="text-[10px] text-slate-500 block font-medium">Due Date</span>
+                    <span className="font-bold text-slate-800">{grp.monthlyDueDate}th</span>
                   </div>
-                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                    <span className="text-[10px] text-slate-400 block font-medium">Members</span>
+                  <div className="p-2.5 bg-[#F5F7FB] rounded-xl border border-slate-100">
+                    <span className="text-[10px] text-slate-500 block font-medium">{t('chitti.members')}</span>
                     <span className="font-bold text-slate-800">
                       {grp.enrolledMembers || 0} / {grp.totalMembers}
                     </span>
                   </div>
-                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                    <span className="text-[10px] text-slate-400 block font-medium">Auctions Done</span>
+                  <div className="p-2.5 bg-[#F5F7FB] rounded-xl border border-slate-100">
+                    <span className="text-[10px] text-slate-500 block font-medium">{t('chitti.auction')}</span>
                     <span className="font-bold text-indigo-700">
                       {grp.auctionsConducted || 0} / {grp.durationMonths}
                     </span>
@@ -337,7 +341,7 @@ export const ChittiPage: React.FC = () => {
                 {/* Progress bar */}
                 <div className="mt-4">
                   <div className="flex justify-between text-[11px] font-semibold text-slate-500 mb-1">
-                    <span>Enrollment Capacity</span>
+                    <span>{t('chitti.members')}</span>
                     <span>{Math.round(((grp.enrolledMembers || 0) / grp.totalMembers) * 100)}%</span>
                   </div>
                   <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -352,9 +356,9 @@ export const ChittiPage: React.FC = () => {
               {/* Action Button */}
               <button
                 onClick={() => loadGroupDetails(grp._id)}
-                className="mt-5 w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-blue-600 text-white font-semibold text-xs shadow-xs transition-colors"
+                className="mt-5 w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[#142B4A] hover:bg-blue-600 text-white font-bold text-xs shadow-xs transition-colors"
               >
-                <span>Manage Members & Auctions</span>
+                <span>{t('chitti.members')} & {t('chitti.auction')}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -362,12 +366,12 @@ export const ChittiPage: React.FC = () => {
         )}
       </div>
 
-      {/* Selected Group Management View (Drawer / Modal) */}
+      {/* Selected Group Management View (Modal) */}
       {selectedGroupId && groupDetails && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
           <div className="relative w-full max-w-5xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
             {/* Header */}
-            <div className="px-6 py-5 bg-[#0f172a] text-white flex items-center justify-between">
+            <div className="px-6 py-5 bg-[#142B4A] text-white flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
                   {groupDetails.group.groupName}
@@ -376,19 +380,19 @@ export const ChittiPage: React.FC = () => {
                   </span>
                 </h2>
                 <p className="text-xs text-slate-300 mt-0.5">
-                  Chit Value: {formatCurrency(groupDetails.group.chitValue)} • Monthly: {formatCurrency(groupDetails.group.monthlyContribution)} • {groupDetails.group.durationMonths} Months
+                  {t('chitti.totalChitValue')}: {formatCurrency(groupDetails.group.chitValue)} • {t('chitti.monthlyContribution')}: {formatCurrency(groupDetails.group.monthlyContribution)} • {groupDetails.group.durationMonths} {t('chitti.totalMonths')}
                 </p>
               </div>
               <button
                 onClick={() => setSelectedGroupId(null)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-[#1B375E] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Sub-Header Actions & Metrics */}
-            <div className="p-5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
+            <div className="p-5 bg-[#F5F7FB] border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => {
@@ -396,30 +400,30 @@ export const ChittiPage: React.FC = () => {
                     setShowAddMemberModal(true);
                   }}
                   disabled={groupDetails.members.length >= groupDetails.group.totalMembers}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs disabled:opacity-40 transition-colors"
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs disabled:opacity-40 transition-colors"
                 >
-                  <Plus className="w-3.5 h-3.5" /> Enroll Member ({groupDetails.members.length}/{groupDetails.group.totalMembers})
+                  <Plus className="w-3.5 h-3.5" /> {t('chitti.addMember')} ({groupDetails.members.length}/{groupDetails.group.totalMembers})
                 </button>
                 <button
                   onClick={() => {
                     setModalError('');
                     setShowAuctionModal(true);
                   }}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-xs transition-colors"
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-xs transition-colors"
                 >
-                  <Award className="w-3.5 h-3.5" /> Conduct Next Auction (#{groupDetails.stats.nextAuctionNumber})
+                  <Award className="w-3.5 h-3.5" /> {t('chitti.auction')} (#{groupDetails.stats.nextAuctionNumber})
                 </button>
               </div>
 
               <div className="flex items-center gap-4 text-xs font-semibold">
                 <div>
-                  <span className="text-slate-400 block text-[10px]">Total Collected</span>
+                  <span className="text-slate-400 block text-[10px]">{t('dashboard.totalCollected')}</span>
                   <span className="text-emerald-700 text-sm font-bold">
                     {formatCurrency(groupDetails.stats.totalCollected)}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px]">Net Payouts Distributed</span>
+                  <span className="text-slate-400 block text-[10px]">{t('chitti.winnerPayout')}</span>
                   <span className="text-blue-700 text-sm font-bold">
                     {formatCurrency(groupDetails.stats.totalDistributed)}
                   </span>
@@ -432,18 +436,18 @@ export const ChittiPage: React.FC = () => {
               {/* Members List */}
               <div>
                 <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3 flex items-center justify-between">
-                  <span>Enrolled Members ({groupDetails.members.length})</span>
+                  <span>{t('chitti.members')} ({groupDetails.members.length})</span>
                 </h3>
                 <div className="overflow-x-auto border border-slate-200 rounded-2xl">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 font-semibold uppercase">
+                    <thead className="bg-[#F5F7FB] border-b border-slate-200 text-[10px] text-slate-500 font-bold uppercase">
                       <tr>
                         <th className="p-2.5">Ticket #</th>
-                        <th className="p-2.5">Member Name</th>
-                        <th className="p-2.5">Phone</th>
-                        <th className="p-2.5">Total Contributed</th>
-                        <th className="p-2.5">Prize Status</th>
-                        <th className="p-2.5 text-right">Action</th>
+                        <th className="p-2.5">{t('customers.name')}</th>
+                        <th className="p-2.5">{t('customers.mobile')}</th>
+                        <th className="p-2.5">{t('customers.totalRepaid')}</th>
+                        <th className="p-2.5">{t('chitti.status')}</th>
+                        <th className="p-2.5 text-right">{t('common.actions')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -452,15 +456,15 @@ export const ChittiPage: React.FC = () => {
                           <td className="p-2.5 font-bold text-blue-700 font-mono">#{m.ticketNumber}</td>
                           <td className="p-2.5 font-bold text-slate-900">{m.customerId?.name || 'Customer'}</td>
                           <td className="p-2.5 font-mono text-slate-600">{m.customerId?.phone}</td>
-                          <td className="p-2.5 font-semibold text-emerald-600">{formatCurrencyExact(m.totalPaid)}</td>
+                          <td className="p-2.5 font-bold text-emerald-600">{formatCurrencyExact(m.totalPaid)}</td>
                           <td className="p-2.5">
                             {m.hasWonAuction ? (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
-                                Won Auction #{m.wonAuctionNumber} 🏆
+                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                                {t('chitti.winningMember')} (#{m.wonAuctionNumber}) 🏆
                               </span>
                             ) : (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600">
-                                Eligible for bidding
+                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600">
+                                {t('common.active')}
                               </span>
                             )}
                           </td>
@@ -471,9 +475,9 @@ export const ChittiPage: React.FC = () => {
                                 setModalError('');
                                 setShowPayModal(true);
                               }}
-                              className="px-2.5 py-1 text-xs rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold"
+                              className="px-2.5 py-1 text-xs rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold"
                             >
-                              Collect Contribution
+                              {t('common.collectPayment')}
                             </button>
                           </td>
                         </tr>
@@ -486,32 +490,32 @@ export const ChittiPage: React.FC = () => {
               {/* Auction History */}
               <div>
                 <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">
-                  Auction History & Dividend Log ({groupDetails.auctions.length})
+                  {t('chitti.auctionHistory')} ({groupDetails.auctions.length})
                 </h3>
                 {groupDetails.auctions.length === 0 ? (
                   <p className="text-xs text-slate-400 italic">No auctions conducted yet for this group.</p>
                 ) : (
                   <div className="overflow-x-auto border border-slate-200 rounded-2xl">
                     <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 font-semibold uppercase">
+                      <thead className="bg-[#F5F7FB] border-b border-slate-200 text-[10px] text-slate-500 font-bold uppercase">
                         <tr>
                           <th className="p-2.5">Auction #</th>
-                          <th className="p-2.5">Date</th>
-                          <th className="p-2.5">Winning Member</th>
-                          <th className="p-2.5">Bid Discount</th>
-                          <th className="p-2.5">Foreman Comm.</th>
-                          <th className="p-2.5">Dividend/Member</th>
-                          <th className="p-2.5">Next Month Due</th>
-                          <th className="p-2.5 text-right">Winner Net Payout</th>
+                          <th className="p-2.5">{t('common.date')}</th>
+                          <th className="p-2.5">{t('chitti.winningMember')}</th>
+                          <th className="p-2.5">{t('chitti.bidAmount')}</th>
+                          <th className="p-2.5">{t('chitti.foremanCommission')}</th>
+                          <th className="p-2.5">{t('chitti.dividendPerMember')}</th>
+                          <th className="p-2.5">{t('chitti.nextMonthPayable')}</th>
+                          <th className="p-2.5 text-right">{t('chitti.winnerPayout')}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {groupDetails.auctions.map((auc) => (
                           <tr key={auc._id} className="hover:bg-slate-50/50">
-                            <td className="p-2.5 font-bold text-slate-800">Auction #{auc.auctionNumber}</td>
+                            <td className="p-2.5 font-bold text-slate-800">#{auc.auctionNumber}</td>
                             <td className="p-2.5 text-slate-600">{formatDate(auc.auctionDate)}</td>
                             <td className="p-2.5 font-bold text-slate-900">
-                              {auc.winningCustomerId?.name} (Ticket #{auc.winningMemberId?.ticketNumber})
+                              {auc.winningCustomerId?.name} (#{auc.winningMemberId?.ticketNumber})
                             </td>
                             <td className="p-2.5 font-semibold text-rose-600">{formatCurrency(auc.bidAmount)}</td>
                             <td className="p-2.5 text-slate-600">{formatCurrency(auc.foremanCommission)}</td>
@@ -530,12 +534,12 @@ export const ChittiPage: React.FC = () => {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+            <div className="px-6 py-4 bg-[#F5F7FB] border-t border-slate-200 flex justify-end">
               <button
                 onClick={() => setSelectedGroupId(null)}
                 className="px-5 py-2 text-xs font-semibold rounded-xl bg-slate-800 text-white hover:bg-slate-900"
               >
-                Close Group
+                {t('common.close')}
               </button>
             </div>
           </div>
@@ -546,11 +550,11 @@ export const ChittiPage: React.FC = () => {
       {showCreateGroupModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
           <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 bg-[#0f172a] text-white flex items-center justify-between">
-              <h2 className="text-base font-bold text-white">Create New Chitti Group</h2>
+            <div className="px-6 py-4 bg-[#142B4A] text-white flex items-center justify-between">
+              <h2 className="text-base font-bold text-white">{t('chitti.addNewGroup')}</h2>
               <button
                 onClick={() => setShowCreateGroupModal(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -564,7 +568,7 @@ export const ChittiPage: React.FC = () => {
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Chit Group Name *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">{t('chitti.groupName')} *</label>
                 <input
                   type="text"
                   required
@@ -577,7 +581,7 @@ export const ChittiPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Total Chit Value (₹) *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">{t('chitti.totalChitValue')} *</label>
                   <input
                     type="number"
                     min="10000"
@@ -593,7 +597,7 @@ export const ChittiPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Number of Members *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">{t('chitti.members')} *</label>
                   <input
                     type="number"
                     min="2"
@@ -616,7 +620,7 @@ export const ChittiPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Monthly Contribution (₹)</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">{t('chitti.monthlyContribution')}</label>
                   <input
                     type="number"
                     required
@@ -626,7 +630,7 @@ export const ChittiPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Foreman Commission (%)</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">{t('chitti.commissionPercentage')}</label>
                   <input
                     type="number"
                     min="0"
@@ -639,43 +643,20 @@ export const ChittiPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Monthly Due Date (Day)</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="31"
-                    value={newGroup.monthlyDueDate}
-                    onChange={(e) => setNewGroup({ ...newGroup, monthlyDueDate: Number(e.target.value) })}
-                    className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Start Date</label>
-                  <input
-                    type="date"
-                    value={newGroup.startDate}
-                    onChange={(e) => setNewGroup({ ...newGroup, startDate: e.target.value })}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300"
-                  />
-                </div>
-              </div>
-
               <div className="pt-2 flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setShowCreateGroupModal(false)}
                   className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={modalSubmitting}
-                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md disabled:opacity-50"
                 >
-                  {modalSubmitting ? 'Creating...' : 'Create Group'}
+                  {modalSubmitting ? t('common.loading') : t('common.submit')}
                 </button>
               </div>
             </form>
@@ -687,8 +668,8 @@ export const ChittiPage: React.FC = () => {
       {showAddMemberModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
           <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 bg-[#0f172a] text-white flex items-center justify-between">
-              <h2 className="text-base font-bold text-white">Enroll Member in Chit</h2>
+            <div className="px-6 py-4 bg-[#142B4A] text-white flex items-center justify-between">
+              <h2 className="text-base font-bold text-white">{t('chitti.addMember')}</h2>
               <button
                 onClick={() => setShowAddMemberModal(false)}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-white"
@@ -705,7 +686,7 @@ export const ChittiPage: React.FC = () => {
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Select Customer *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">{t('customers.name')} *</label>
                 <select
                   required
                   value={newMember.customerId}
@@ -742,42 +723,20 @@ export const ChittiPage: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Nominee Name</label>
-                  <input
-                    type="text"
-                    placeholder="Nominee name"
-                    value={newMember.nomineeName}
-                    onChange={(e) => setNewMember({ ...newMember, nomineeName: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Nominee Relation</label>
-                  <input
-                    type="text"
-                    value={newMember.nomineeRelation}
-                    onChange={(e) => setNewMember({ ...newMember, nomineeRelation: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300"
-                  />
-                </div>
-              </div>
-
               <div className="pt-2 flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setShowAddMemberModal(false)}
                   className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={modalSubmitting}
-                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md disabled:opacity-50"
                 >
-                  {modalSubmitting ? 'Enrolling...' : 'Confirm Enrollment'}
+                  {modalSubmitting ? t('common.loading') : t('common.submit')}
                 </button>
               </div>
             </form>
@@ -789,13 +748,13 @@ export const ChittiPage: React.FC = () => {
       {showAuctionModal && groupDetails && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
           <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 bg-[#0f172a] text-white flex items-center justify-between">
+            <div className="px-6 py-4 bg-[#142B4A] text-white flex items-center justify-between">
               <div>
                 <h2 className="text-base font-bold text-white">
-                  Conduct Auction #{groupDetails.stats.nextAuctionNumber}
+                  {t('chitti.auction')} #{groupDetails.stats.nextAuctionNumber}
                 </h2>
                 <p className="text-xs text-slate-300">
-                  Total Chit Value: {formatCurrency(groupDetails.group.chitValue)}
+                  {t('chitti.totalChitValue')}: {formatCurrency(groupDetails.group.chitValue)}
                 </p>
               </div>
               <button
@@ -815,7 +774,7 @@ export const ChittiPage: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Winning Bidder (Non-Prized Members Only) *
+                  {t('chitti.winningMember')} *
                 </label>
                 <select
                   required
@@ -823,7 +782,7 @@ export const ChittiPage: React.FC = () => {
                   onChange={(e) => setAuctionForm({ ...auctionForm, winningMemberId: e.target.value })}
                   className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 bg-white font-medium"
                 >
-                  <option value="">-- Select winning member --</option>
+                  <option value="">-- {t('chitti.winningMember')} --</option>
                   {groupDetails.members
                     .filter((m) => !m.hasWonAuction)
                     .map((m) => (
@@ -836,7 +795,7 @@ export const ChittiPage: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Bid Discount Amount (₹) *
+                  {t('chitti.bidAmount')} *
                 </label>
                 <input
                   type="number"
@@ -851,52 +810,29 @@ export const ChittiPage: React.FC = () => {
               </div>
 
               {/* Transparent Calculation Breakdown */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+              <div className="p-4 rounded-2xl bg-[#F5F7FB] border border-slate-200 space-y-2 text-xs">
                 <p className="font-bold text-slate-800 uppercase tracking-wider text-[11px] pb-1 border-b border-slate-200">
-                  Transparent Auction Math Preview
+                  Auction Calculation Preview
                 </p>
                 <div className="flex justify-between text-slate-600">
-                  <span>Foreman Commission (5%):</span>
+                  <span>{t('chitti.foremanCommission')}:</span>
                   <span className="font-semibold text-slate-800">{formatCurrency(previewForemanCommission)}</span>
                 </div>
                 <div className="flex justify-between text-slate-600">
-                  <span>Total Dividend Distributed:</span>
-                  <span className="font-semibold text-emerald-600">{formatCurrency(previewTotalDividend)}</span>
+                  <span>{t('chitti.dividend')}:</span>
+                  <span className="font-bold text-emerald-600">{formatCurrency(previewTotalDividend)}</span>
                 </div>
                 <div className="flex justify-between text-slate-600">
-                  <span>Dividend Per Member ({groupDetails.group.totalMembers}):</span>
+                  <span>{t('chitti.dividendPerMember')}:</span>
                   <span className="font-bold text-emerald-700">{formatCurrency(previewDividendPerMember)}</span>
                 </div>
                 <div className="flex justify-between text-slate-600">
-                  <span>Next Month Payable by Members:</span>
+                  <span>{t('chitti.nextMonthPayable')}:</span>
                   <span className="font-bold text-blue-700">{formatCurrency(previewNextPayable)}</span>
                 </div>
                 <div className="flex justify-between text-slate-800 pt-2 border-t border-slate-200 font-bold">
-                  <span>Winner Net Payout (Chit - Bid):</span>
+                  <span>{t('chitti.winnerPayout')}:</span>
                   <span className="text-base text-blue-800 font-black">{formatCurrencyExact(previewNetPayout)}</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Auction Date</label>
-                  <input
-                    type="date"
-                    required
-                    value={auctionForm.auctionDate}
-                    onChange={(e) => setAuctionForm({ ...auctionForm, auctionDate: e.target.value })}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Notes</label>
-                  <input
-                    type="text"
-                    placeholder="Bidding notes..."
-                    value={auctionForm.notes}
-                    onChange={(e) => setAuctionForm({ ...auctionForm, notes: e.target.value })}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300"
-                  />
                 </div>
               </div>
 
@@ -906,14 +842,14 @@ export const ChittiPage: React.FC = () => {
                   onClick={() => setShowAuctionModal(false)}
                   className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={modalSubmitting}
-                  className="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs shadow-md disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-md disabled:opacity-50"
                 >
-                  {modalSubmitting ? 'Conducting...' : 'Finalize Auction & Log Payout'}
+                  {modalSubmitting ? t('common.loading') : t('common.submit')}
                 </button>
               </div>
             </form>
@@ -925,9 +861,9 @@ export const ChittiPage: React.FC = () => {
       {showPayModal && selectedMemberForPay && groupDetails && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
           <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 bg-[#0f172a] text-white flex items-center justify-between">
+            <div className="px-6 py-4 bg-[#142B4A] text-white flex items-center justify-between">
               <div>
-                <h2 className="text-base font-bold text-white">Chit Contribution</h2>
+                <h2 className="text-base font-bold text-white">{t('chitti.monthlyContribution')}</h2>
                 <p className="text-xs text-slate-300">
                   Ticket #{selectedMemberForPay.ticketNumber} • {selectedMemberForPay.customerId?.name}
                 </p>
@@ -945,40 +881,14 @@ export const ChittiPage: React.FC = () => {
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Contribution Amount (₹) *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">{t('paymentModal.amountPaying')} *</label>
                 <input
                   type="number"
-                  min="1"
+                  min="100"
                   required
                   value={paymentForm.amount}
                   onChange={(e) => setPaymentForm({ ...paymentForm, amount: Number(e.target.value) })}
-                  className="w-full px-3.5 py-2.5 text-base font-bold text-blue-700 rounded-xl border border-slate-300"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Payment Method</label>
-                <select
-                  value={paymentForm.paymentMethod}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, paymentMethod: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 bg-white"
-                >
-                  <option value="cash">Cash</option>
-                  <option value="gpay">Google Pay (UPI)</option>
-                  <option value="phonepe">PhonePe (UPI)</option>
-                  <option value="bank_transfer">Bank Transfer (NEFT/IMPS)</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Transaction Ref / UTR</label>
-                <input
-                  type="text"
-                  placeholder="e.g. UPI-12345678"
-                  value={paymentForm.transactionReference}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, transactionReference: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs font-mono rounded-xl border border-slate-300"
+                  className="w-full px-3.5 py-2 text-base font-bold text-slate-900 rounded-xl border border-slate-300"
                 />
               </div>
 
@@ -988,14 +898,14 @@ export const ChittiPage: React.FC = () => {
                   onClick={() => setShowPayModal(false)}
                   className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={modalSubmitting}
-                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-md disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-xl bg-[#16A34A] hover:bg-emerald-700 text-white font-bold text-xs shadow-md disabled:opacity-50"
                 >
-                  {modalSubmitting ? 'Recording...' : 'Record Payment & Print Receipt'}
+                  {modalSubmitting ? t('common.loading') : t('common.save')}
                 </button>
               </div>
             </form>
@@ -1010,4 +920,3 @@ export const ChittiPage: React.FC = () => {
     </div>
   );
 };
-
