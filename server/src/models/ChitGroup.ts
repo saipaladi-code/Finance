@@ -40,3 +40,4 @@ const ChitGroupSchema = new Schema<IChitGroup>(
 );
 
 export const ChitGroup = mongoose.model<IChitGroup>('ChitGroup', ChitGroupSchema);
+

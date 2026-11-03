@@ -645,3 +645,4 @@ export const DailyFinancePage: React.FC = () => {
     </div>
   );
 };
+

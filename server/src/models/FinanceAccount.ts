@@ -50,3 +50,4 @@ const FinanceAccountSchema = new Schema<IFinanceAccount>(
 );
 
 export const FinanceAccount = mongoose.model<IFinanceAccount>('FinanceAccount', FinanceAccountSchema);
+

@@ -279,3 +279,4 @@ export const CollectionsPage: React.FC = () => {
     </div>
   );
 };
+

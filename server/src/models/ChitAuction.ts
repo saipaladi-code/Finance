@@ -51,3 +51,4 @@ const ChitAuctionSchema = new Schema<IChitAuction>(
 ChitAuctionSchema.index({ chitGroupId: 1, auctionNumber: 1 }, { unique: true });
 
 export const ChitAuction = mongoose.model<IChitAuction>('ChitAuction', ChitAuctionSchema);
+

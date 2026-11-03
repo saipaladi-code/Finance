@@ -17,3 +17,4 @@ router.get('/:id', getDailyAccountById);
 router.post('/:id/payments', recordDailyPayment);
 
 export default router;
+

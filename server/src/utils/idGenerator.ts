@@ -33,3 +33,4 @@ export const generateReceiptNumber = (): string => {
   const rand = Math.floor(1000 + Math.random() * 9000);
   return `REC-${y}${m}${d}-${rand}`;
 };
+

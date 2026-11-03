@@ -35,3 +35,4 @@ const InstallmentSchema = new Schema<IInstallment>(
 InstallmentSchema.index({ accountId: 1, installmentNumber: 1 }, { unique: true });
 
 export const Installment = mongoose.model<IInstallment>('Installment', InstallmentSchema);
+

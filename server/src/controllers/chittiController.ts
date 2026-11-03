@@ -449,3 +449,4 @@ export const recordChitPayment = async (req: Request, res: Response): Promise<vo
     res.status(500).json({ success: false, message: error.message || 'Error recording chit payment.' });
   }
 };
+

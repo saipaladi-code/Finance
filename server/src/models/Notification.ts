@@ -33,3 +33,4 @@ const NotificationSchema = new Schema<INotification>(
 );
 
 export const Notification = mongoose.model<INotification>('Notification', NotificationSchema);
+

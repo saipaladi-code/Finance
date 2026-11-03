@@ -15,3 +15,4 @@ router.get('/weekly', getWeeklyReport);
 router.get('/monthly', getMonthlyReport);
 
 export default router;
+

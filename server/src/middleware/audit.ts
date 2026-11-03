@@ -25,3 +25,4 @@ export const logAudit = async (
     console.error('Failed to write audit log:', err);
   }
 };
+

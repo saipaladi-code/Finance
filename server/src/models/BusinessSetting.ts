@@ -44,3 +44,4 @@ const BusinessSettingSchema = new Schema<IBusinessSetting>(
 );
 
 export const BusinessSetting = mongoose.model<IBusinessSetting>('BusinessSetting', BusinessSettingSchema);
+

@@ -295,3 +295,4 @@ export const CollectPaymentModal: React.FC<CollectPaymentModalProps> = ({
     </>
   );
 };
+

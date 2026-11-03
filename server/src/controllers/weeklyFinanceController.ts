@@ -342,3 +342,4 @@ export const recordWeeklyPayment = async (req: Request, res: Response): Promise<
     res.status(500).json({ success: false, message: error.message || 'Error recording weekly payment.' });
   }
 };
+

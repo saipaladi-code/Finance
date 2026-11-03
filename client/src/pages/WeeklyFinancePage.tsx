@@ -666,3 +666,4 @@ export const WeeklyFinancePage: React.FC = () => {
     </div>
   );
 };
+

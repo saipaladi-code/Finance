@@ -19,3 +19,4 @@ router.put('/:id', updateCustomer);
 router.delete('/:id', requireAdmin, deleteCustomer);
 
 export default router;
+

@@ -154,3 +154,4 @@ $$\text{Weekly Installment} = \frac{\text{Total Repayment}}{\text{Total Weeks}}$
    - `MONGODB_URI`: Your MongoDB Atlas connection string.
    - `JWT_SECRET`: Random 64-character secret.
    - `CLIENT_URL`: Your Vercel frontend URL.
+

@@ -191,3 +191,4 @@ export const QrPaymentModal: React.FC<QrPaymentModalProps> = ({
     </div>
   );
 };
+

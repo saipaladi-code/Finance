@@ -65,3 +65,4 @@ export const updateSettings = async (req: Request, res: Response): Promise<void>
     res.status(500).json({ success: false, message: error.message || 'Error updating settings.' });
   }
 };
+

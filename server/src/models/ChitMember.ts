@@ -39,3 +39,4 @@ ChitMemberSchema.index({ chitGroupId: 1, ticketNumber: 1 }, { unique: true });
 ChitMemberSchema.index({ chitGroupId: 1, customerId: 1 });
 
 export const ChitMember = mongoose.model<IChitMember>('ChitMember', ChitMemberSchema);
+

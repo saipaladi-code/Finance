@@ -1010,3 +1010,4 @@ export const ChittiPage: React.FC = () => {
     </div>
   );
 };
+

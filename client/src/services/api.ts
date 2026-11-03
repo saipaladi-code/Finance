@@ -135,3 +135,4 @@ export const api = {
   getNotifications: () => request('/notifications'),
   markNotificationAsRead: (id: string) => request(`/notifications/${id}/read`, { method: 'PUT' }),
 };
+

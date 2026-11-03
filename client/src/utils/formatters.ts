@@ -84,3 +84,4 @@ export const numberToWordsINR = (num: number): string => {
   str += Number(n[5]) !== 0 ? ((str !== '') ? 'and ' : '') + (a[Number(n[5])] || b[Number(n[5][0])] + ' ' + a[Number(n[5][1])]) : '';
   return str.trim() ? `${str.trim()} Rupees Only` : 'Zero Rupees Only';
 };
+

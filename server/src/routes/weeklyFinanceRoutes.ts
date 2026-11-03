@@ -17,3 +17,4 @@ router.get('/:id', getWeeklyAccountById);
 router.post('/:id/payments', recordWeeklyPayment);
 
 export default router;
+
