@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -65,6 +66,20 @@ const apiLimiter = rateLimit({
 });
 app.use('/api/', apiLimiter);
 
+// Ensure database connection before processing API requests (handles Vercel serverless cold starts)
+app.use(async (req, res, next) => {
+  try {
+    if (mongoose.connection.readyState < 1) {
+      await connectDB();
+      await autoSeedIfEmpty();
+    }
+    next();
+  } catch (err) {
+    console.error('Database connection middleware error:', err);
+    next(err);
+  }
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
@@ -95,16 +110,18 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
-// Connect to DB, check auto-seed, and start server
-connectDB()
-  .then(async () => {
-    await autoSeedIfEmpty();
-    app.listen(PORT, () => {
-      console.log(`🚀 Smart Finance Server running on port ${PORT} [Mode: ${process.env.NODE_ENV || 'development'}]`);
+// Connect to DB, check auto-seed, and start local server if not in Vercel serverless environment
+if (!process.env.VERCEL) {
+  connectDB()
+    .then(async () => {
+      await autoSeedIfEmpty();
+      app.listen(PORT, () => {
+        console.log(`🚀 Smart Finance Server running on port ${PORT} [Mode: ${process.env.NODE_ENV || 'development'}]`);
+      });
+    })
+    .catch((err) => {
+      console.error('Failed to start server:', err);
     });
-  })
-  .catch((err) => {
-    console.error('Failed to start server:', err);
-  });
+}
 
 export default app;

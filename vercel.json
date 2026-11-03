@@ -8,8 +8,7 @@
     "server": {
       "root": "server",
       "framework": "express",
-      "buildCommand": "npm run build",
-      "entrypoint": "dist/server.js"
+      "entrypoint": "src/server.ts"
     }
   },
   "rewrites": [
@@ -27,3 +26,4 @@
     }
   ]
 }
+
