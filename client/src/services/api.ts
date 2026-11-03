@@ -15,17 +15,36 @@ export const getApiBaseUrl = (): string => {
     return clean;
   }
 
-  // 2. Allow runtime override from window (e.g. for testing / debugging)
-  if (typeof window !== 'undefined' && (window as any).__FINANCE_API_URL__) {
-    let custom = (window as any).__FINANCE_API_URL__.trim().replace(/\/+$/, '');
-    if (!custom.endsWith('/api')) {
-      custom = `${custom}/api`;
+  // 2. Allow runtime override from localStorage or window (e.g. for live production config)
+  if (typeof window !== 'undefined') {
+    const localOverride = localStorage.getItem('FINANCE_API_URL') || (window as any).__FINANCE_API_URL__;
+    if (localOverride && typeof localOverride === 'string' && localOverride.trim() !== '') {
+      let custom = localOverride.trim().replace(/\/+$/, '');
+      if (!custom.endsWith('/api')) {
+        custom = `${custom}/api`;
+      }
+      return custom;
     }
-    return custom;
   }
 
   // 3. Fallback to relative /api (handled by Vite proxy in dev or reverse proxy in prod)
   return '/api';
+};
+
+export const setCustomApiUrl = (url: string | null): void => {
+  if (url && url.trim() !== '') {
+    let clean = url.trim().replace(/\/+$/, '');
+    if (!clean.endsWith('/api')) {
+      clean = `${clean}/api`;
+    }
+    localStorage.setItem('FINANCE_API_URL', clean);
+  } else {
+    localStorage.removeItem('FINANCE_API_URL');
+  }
+};
+
+export const getCustomApiUrl = (): string => {
+  return localStorage.getItem('FINANCE_API_URL') || '';
 };
 
 export const getAuthToken = (): string | null => {

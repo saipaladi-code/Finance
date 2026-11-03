@@ -14,8 +14,10 @@ import {
   CheckCircle2,
   Clock,
   Sparkles,
+  Server,
+  ExternalLink,
 } from 'lucide-react';
-import { api } from '../services/api.js';
+import { api, getApiBaseUrl, setCustomApiUrl, getCustomApiUrl } from '../services/api.js';
 import { useAuth } from '../context/AuthContext.js';
 
 export const LoginPage: React.FC = () => {
@@ -28,6 +30,11 @@ export const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
+
+  // Backend API URL configuration state (for seamless live Render linking)
+  const [showApiSettings, setShowApiSettings] = useState<boolean>(false);
+  const [customApiUrl, setCustomApiUrlInput] = useState<string>(getCustomApiUrl() || '');
+  const [currentApiEndpoint, setCurrentApiEndpoint] = useState<string>(getApiBaseUrl());
 
   // Forgot / Reset Password state
   const [showForgotModal, setShowForgotModal] = useState<boolean>(false);
@@ -227,9 +234,70 @@ export const LoginPage: React.FC = () => {
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="p-7 sm:p-8 space-y-4">
           {error && (
-            <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
-              <div className="flex-1 font-medium leading-relaxed">{error}</div>
+            <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs space-y-2">
+              <div className="flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
+                <div className="flex-1 font-medium leading-relaxed">{error}</div>
+              </div>
+
+              {(error.includes('404') || error.includes('backend API URL') || error.includes('Unable to connect')) && (
+                <div className="pt-2 border-t border-rose-200/60">
+                  <button
+                    type="button"
+                    onClick={() => setShowApiSettings(true)}
+                    className="inline-flex items-center gap-1.5 font-bold text-blue-700 hover:text-blue-900 underline"
+                  >
+                    <Server className="w-3.5 h-3.5" />
+                    <span>Set your Render Backend URL here &gt;</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Quick Backend API URL Config Modal / Card */}
+          {showApiSettings && (
+            <div className="p-3.5 rounded-2xl bg-blue-50 border border-blue-200 text-xs text-blue-900 space-y-2.5 animate-in fade-in">
+              <div className="flex items-center justify-between">
+                <span className="font-bold flex items-center gap-1.5 text-blue-900">
+                  <Server className="w-3.5 h-3.5 text-blue-600" /> Connect Backend Server
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowApiSettings(false)}
+                  className="text-slate-400 hover:text-slate-600 font-bold"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="text-[11px] text-blue-700 leading-tight">
+                Paste your deployed Render backend URL (e.g. <code className="font-mono bg-blue-100 px-1 rounded">https://finance-server.onrender.com</code>):
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  placeholder="https://your-service.onrender.com"
+                  value={customApiUrl}
+                  onChange={(e) => setCustomApiUrlInput(e.target.value)}
+                  className="flex-1 px-3 py-1.5 text-xs rounded-xl border border-blue-300 font-mono bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomApiUrl(customApiUrl);
+                    setCurrentApiEndpoint(getApiBaseUrl());
+                    setError('');
+                    setShowApiSettings(false);
+                    alert(`Backend connected to: ${getApiBaseUrl()}\nYou can now log in!`);
+                  }}
+                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shrink-0 shadow-xs"
+                >
+                  Connect
+                </button>
+              </div>
+              <p className="text-[10px] text-slate-500">
+                Current API Base: <span className="font-mono text-blue-800">{currentApiEndpoint}</span>
+              </p>
             </div>
           )}
 
@@ -332,6 +400,18 @@ export const LoginPage: React.FC = () => {
             >
               <Sparkles className="w-3.5 h-3.5 text-blue-600" />
               <span>{t('auth.demoAdmin')}</span>
+            </button>
+          </div>
+
+          {/* API Server Status & Quick Switcher */}
+          <div className="pt-1 text-center">
+            <button
+              type="button"
+              onClick={() => setShowApiSettings(true)}
+              className="text-[11px] text-slate-400 hover:text-blue-600 transition-colors inline-flex items-center gap-1.5 font-medium"
+            >
+              <Server className="w-3 h-3 text-slate-400" />
+              <span>Backend Server: <span className="font-mono text-slate-600">{currentApiEndpoint}</span></span>
             </button>
           </div>
         </form>
