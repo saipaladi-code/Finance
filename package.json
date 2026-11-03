@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Production-ready Smart Finance Management System for Daily Finance, Weekly Finance, and Chitti (Chit Fund)",
   "scripts": {
+    "build": "npm --prefix client run build",
     "server": "npm --prefix server run dev",
     "client": "npm --prefix client run dev",
     "seed": "npm --prefix server run seed",

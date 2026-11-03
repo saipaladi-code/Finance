@@ -3,11 +3,14 @@ import bcrypt from 'bcryptjs';
 
 export interface IUser extends Document {
   name: string;
-  email: string;
+  phone: string;
+  email?: string;
   password: string;
-  phone?: string;
   role: 'admin' | 'staff' | 'customer';
   customerId?: mongoose.Types.ObjectId;
+  resetOtpHash?: string;
+  resetOtpExpires?: Date;
+  resetOtpAttempts?: number;
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
   isActive: boolean;
@@ -19,11 +22,14 @@ export interface IUser extends Document {
 const UserSchema = new Schema<IUser>(
   {
     name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    phone: { type: String, required: true, unique: true, trim: true, index: true },
+    email: { type: String, trim: true, lowercase: true },
     password: { type: String, required: true },
-    phone: { type: String, trim: true },
     role: { type: String, enum: ['admin', 'staff', 'customer'], default: 'admin' },
     customerId: { type: Schema.Types.ObjectId, ref: 'Customer' },
+    resetOtpHash: { type: String },
+    resetOtpExpires: { type: Date },
+    resetOtpAttempts: { type: Number, default: 0 },
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
     isActive: { type: Boolean, default: true },

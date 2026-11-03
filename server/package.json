@@ -8,7 +8,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "seed": "tsx src/scripts/seed.ts",
-    "test": "tsx src/scripts/testCalculations.ts"
+    "test": "tsx src/scripts/testCalculations.ts",
+    "test:auth": "tsx src/scripts/testAuth.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

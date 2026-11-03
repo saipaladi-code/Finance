@@ -276,7 +276,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
             <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100">
               <div className="px-4 py-2.5 border-b border-slate-100">
                 <p className="text-xs font-bold text-slate-900 truncate">{user?.name}</p>
-                <p className="text-[11px] text-slate-500 truncate">{user?.email}</p>
+                <p className="text-[11px] text-slate-500 truncate font-mono">
+                  {user?.phone ? `+91 ${user.phone}` : user?.email}
+                </p>
               </div>
               <button
                 onClick={() => {

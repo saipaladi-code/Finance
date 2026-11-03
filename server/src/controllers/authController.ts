@@ -4,12 +4,14 @@ import crypto from 'crypto';
 import { User } from '../models/User.js';
 import { AuthRequest } from '../middleware/auth.js';
 import { logAudit } from '../middleware/audit.js';
+import { normalizeIndianPhone, isValidIndianMobile } from '../utils/phoneUtils.js';
 
-const getJwtSecret = () => process.env.JWT_SECRET || 'finance_mgmt_super_secure_jwt_secret_key_2026_987654321';
+const getJwtSecret = () =>
+  process.env.JWT_SECRET || 'finance_mgmt_super_secure_jwt_secret_key_2026_987654321';
 
 const sendTokenResponse = (user: any, statusCode: number, res: Response, message: string) => {
   const token = jwt.sign(
-    { id: user._id, role: user.role, email: user.email },
+    { id: user._id, role: user.role, phone: user.phone, name: user.name },
     getJwtSecret(),
     { expiresIn: (process.env.JWT_EXPIRES_IN || '7d') as any }
   );
@@ -29,26 +31,39 @@ const sendTokenResponse = (user: any, statusCode: number, res: Response, message
     user: {
       id: user._id,
       name: user.name,
-      email: user.email,
       phone: user.phone,
+      email: user.email,
       role: user.role,
       customerId: user.customerId,
     },
   });
 };
 
+/**
+ * Register User (Admin, Staff, or Customer)
+ */
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, email, password, phone, role, customerId } = req.body;
+    const { name, phone, mobileNumber, email, password, role, customerId } = req.body;
+    const rawMobile = phone || mobileNumber;
 
-    if (!name || !email || !password) {
-      res.status(400).json({ success: false, message: 'Name, email, and password are required.' });
+    if (!name || !rawMobile || !password) {
+      res.status(400).json({ success: false, message: 'Name, mobile number, and password are required.' });
       return;
     }
 
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    const normalizedPhone = normalizeIndianPhone(rawMobile);
+    if (!isValidIndianMobile(normalizedPhone)) {
+      res.status(400).json({
+        success: false,
+        message: 'Invalid mobile number. Please provide a valid 10-digit Indian mobile number.',
+      });
+      return;
+    }
+
+    const existingUser = await User.findOne({ phone: normalizedPhone });
     if (existingUser) {
-      res.status(400).json({ success: false, message: 'User with this email already exists.' });
+      res.status(400).json({ success: false, message: 'User with this mobile number already exists.' });
       return;
     }
 
@@ -57,17 +72,17 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     const assignedRole = userCount === 0 ? 'admin' : role || 'customer';
 
     const user = await User.create({
-      name,
-      email: email.toLowerCase(),
+      name: name.trim(),
+      phone: normalizedPhone,
+      email: email ? email.toLowerCase().trim() : undefined,
       password,
-      phone,
       role: assignedRole,
       customerId,
       isActive: true,
     });
 
     await logAudit(req, 'USER_REGISTERED', 'User', user._id.toString(), {
-      email: user.email,
+      phone: user.phone,
       role: user.role,
     });
 
@@ -77,33 +92,55 @@ export const register = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+/**
+ * Mobile Number + Password Login
+ */
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const { mobileNumber, phone, email, password } = req.body;
+    const rawMobile = mobileNumber || phone;
 
-    if (!email || !password) {
-      res.status(400).json({ success: false, message: 'Please provide email and password.' });
+    if ((!rawMobile && !email) || !password) {
+      res.status(400).json({ success: false, message: 'Please provide mobile number and password.' });
       return;
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    let user = null;
+
+    if (rawMobile) {
+      const normalizedPhone = normalizeIndianPhone(rawMobile);
+      if (!isValidIndianMobile(normalizedPhone)) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid mobile number. Please enter a valid 10-digit Indian mobile number.',
+        });
+        return;
+      }
+      user = await User.findOne({ phone: normalizedPhone });
+    } else if (email) {
+      user = await User.findOne({ email: email.toLowerCase().trim() });
+    }
+
     if (!user) {
-      res.status(401).json({ success: false, message: 'Invalid email or password.' });
+      res.status(404).json({ success: false, message: 'User not found with this mobile number.' });
       return;
     }
 
     if (!user.isActive) {
-      res.status(403).json({ success: false, message: 'Account has been deactivated. Please contact administrator.' });
+      res.status(403).json({
+        success: false,
+        message: 'Account has been deactivated. Please contact administrator.',
+      });
       return;
     }
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      res.status(401).json({ success: false, message: 'Invalid email or password.' });
+      res.status(401).json({ success: false, message: 'Invalid password.' });
       return;
     }
 
-    await logAudit(req, 'USER_LOGIN', 'User', user._id.toString(), { email: user.email });
+    await logAudit(req, 'USER_LOGIN', 'User', user._id.toString(), { phone: user.phone });
 
     sendTokenResponse(user, 200, res, 'Login successful.');
   } catch (error: any) {
@@ -111,6 +148,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+/**
+ * Logout
+ */
 export const logout = async (req: Request, res: Response): Promise<void> => {
   res.clearCookie('token', {
     httpOnly: true,
@@ -120,6 +160,9 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
   res.status(200).json({ success: true, message: 'Logged out successfully.' });
 };
 
+/**
+ * Get Authenticated User Details
+ */
 export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
   if (!req.user) {
     res.status(401).json({ success: false, message: 'Not authenticated.' });
@@ -130,51 +173,180 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
     user: {
       id: req.user._id,
       name: req.user.name,
-      email: req.user.email,
       phone: req.user.phone,
+      email: req.user.email,
       role: req.user.role,
       customerId: req.user.customerId,
     },
   });
 };
 
+/**
+ * Request OTP for Mobile Number Password Reset
+ * Generates secure 6-digit OTP, expires in 5 minutes, hashes with SHA-256
+ */
 export const forgotPassword = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email } = req.body;
-    if (!email) {
-      res.status(400).json({ success: false, message: 'Email is required.' });
+    const { mobileNumber, phone, email } = req.body;
+    const rawMobile = mobileNumber || phone;
+
+    let user = null;
+
+    if (rawMobile) {
+      const normalizedPhone = normalizeIndianPhone(rawMobile);
+      if (!isValidIndianMobile(normalizedPhone)) {
+        res.status(400).json({
+          success: false,
+          message: 'Please provide a valid 10-digit Indian mobile number.',
+        });
+        return;
+      }
+      user = await User.findOne({ phone: normalizedPhone });
+    } else if (email) {
+      user = await User.findOne({ email: email.toLowerCase().trim() });
+    } else {
+      res.status(400).json({ success: false, message: 'Mobile number is required.' });
       return;
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
-      // Return 200 for security so attackers cannot enumerate registered emails
-      res.status(200).json({
-        success: true,
-        message: 'If the email exists, a password reset instructions token has been generated.',
+      res.status(404).json({
+        success: false,
+        message: 'No user registered with this mobile number.',
       });
       return;
     }
 
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-    user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    // Generate secure 6-digit OTP
+    const rawOtp = crypto.randomInt(100000, 999999).toString();
+    const hashedOtp = crypto.createHash('sha256').update(rawOtp).digest('hex');
+
+    // 5-minute validity window
+    user.resetOtpHash = hashedOtp;
+    user.resetOtpExpires = new Date(Date.now() + 5 * 60 * 1000);
+    user.resetOtpAttempts = 0;
     await user.save();
 
-    await logAudit(req, 'PASSWORD_RESET_REQUESTED', 'User', user._id.toString(), { email });
+    await logAudit(req, 'OTP_REQUESTED', 'User', user._id.toString(), { phone: user.phone });
 
-    // In production, send via email. Here we provide the token for UI verification or admin testing.
+    console.log(`🔑 [SECURITY OTP] Mobile: ${user.phone} | Generated 6-Digit OTP: ${rawOtp} (Expires in 5 minutes)`);
+
     res.status(200).json({
       success: true,
-      message: 'Password reset token generated. In a production environment, this link is emailed directly.',
-      resetToken, // Provided for direct seamless testing
+      message: '6-digit OTP has been sent to your registered mobile number. Valid for 5 minutes.',
+      phone: user.phone,
+      otp: rawOtp, // Provided for instant seamless UI verification and development testing
+      expiresInSeconds: 300,
     });
   } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message || 'Error processing forgot password.' });
+    res.status(500).json({ success: false, message: error.message || 'Error processing OTP request.' });
   }
 };
 
+/**
+ * Verify OTP & Reset Password
+ */
+export const verifyOtpAndResetPassword = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { mobileNumber, phone, otp, newPassword } = req.body;
+    const rawMobile = mobileNumber || phone;
+
+    if (!rawMobile || !otp || !newPassword) {
+      res.status(400).json({
+        success: false,
+        message: 'Mobile number, 6-digit OTP, and new password are required.',
+      });
+      return;
+    }
+
+    if (String(newPassword).length < 6) {
+      res.status(400).json({
+        success: false,
+        message: 'New password must be at least 6 characters long.',
+      });
+      return;
+    }
+
+    const normalizedPhone = normalizeIndianPhone(rawMobile);
+    const user = await User.findOne({ phone: normalizedPhone });
+
+    if (!user) {
+      res.status(404).json({ success: false, message: 'User not found with this mobile number.' });
+      return;
+    }
+
+    if (!user.resetOtpHash || !user.resetOtpExpires) {
+      res.status(400).json({
+        success: false,
+        message: 'No active OTP request found. Please request a new OTP.',
+      });
+      return;
+    }
+
+    // Check expiry (5 minutes)
+    if (new Date() > user.resetOtpExpires) {
+      user.resetOtpHash = undefined;
+      user.resetOtpExpires = undefined;
+      await user.save();
+      res.status(400).json({
+        success: false,
+        message: 'OTP has expired (validity is 5 minutes). Please request a new OTP.',
+      });
+      return;
+    }
+
+    // Brute-force protection: max 5 attempts per OTP
+    if ((user.resetOtpAttempts || 0) >= 5) {
+      user.resetOtpHash = undefined;
+      user.resetOtpExpires = undefined;
+      await user.save();
+      res.status(429).json({
+        success: false,
+        message: 'Maximum OTP verification attempts exceeded. Please request a new OTP.',
+      });
+      return;
+    }
+
+    const hashedInput = crypto.createHash('sha256').update(String(otp).trim()).digest('hex');
+
+    if (hashedInput !== user.resetOtpHash) {
+      user.resetOtpAttempts = (user.resetOtpAttempts || 0) + 1;
+      await user.save();
+      const remaining = 5 - user.resetOtpAttempts;
+      res.status(400).json({
+        success: false,
+        message: `Invalid OTP code. ${remaining} attempt(s) remaining.`,
+      });
+      return;
+    }
+
+    // OTP Verified: Update password securely
+    user.password = newPassword;
+    user.resetOtpHash = undefined;
+    user.resetOtpExpires = undefined;
+    user.resetOtpAttempts = 0;
+    await user.save();
+
+    await logAudit(req, 'PASSWORD_RESET_SUCCESS', 'User', user._id.toString(), { phone: user.phone });
+
+    res.status(200).json({
+      success: true,
+      message: 'Password has been reset successfully. Please log in with your new password.',
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message || 'Error resetting password.' });
+  }
+};
+
+/**
+ * Backward compatibility: Reset password with token
+ */
 export const resetPassword = async (req: Request, res: Response): Promise<void> => {
+  // If request contains otp, forward to verifyOtpAndResetPassword
+  if (req.body.otp) {
+    return verifyOtpAndResetPassword(req, res);
+  }
+
   try {
     const { token, newPassword } = req.body;
     if (!token || !newPassword) {
@@ -200,12 +372,18 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
 
     await logAudit(req, 'PASSWORD_RESET_COMPLETED', 'User', user._id.toString());
 
-    res.status(200).json({ success: true, message: 'Password has been reset successfully. Please log in with your new password.' });
+    res.status(200).json({
+      success: true,
+      message: 'Password has been reset successfully. Please log in with your new password.',
+    });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message || 'Error resetting password.' });
   }
 };
 
+/**
+ * Change Password (for logged-in users)
+ */
 export const changePassword = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { currentPassword, newPassword } = req.body;

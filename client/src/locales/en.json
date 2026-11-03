@@ -319,5 +319,29 @@
     "upiId": "Merchant UPI ID",
     "scanInstruction": "Scan the QR code with any UPI app to make instant payment.",
     "close": "Close"
+  },
+  "auth": {
+    "loginTitle": "Secure Authentication Portal",
+    "mobileNumber": "Mobile Number",
+    "mobilePlaceholder": "Enter your 10-digit mobile number",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "forgotPassword": "Forgot Password?",
+    "accessSystem": "Access System",
+    "demoAdmin": "Auto-Fill Admin Demo (9876543210)",
+    "invalidMobile": "Please enter a valid 10-digit Indian mobile number (starts with 6-9).",
+    "passwordRequired": "Please enter your password.",
+    "passwordRecovery": "Password Recovery via OTP",
+    "enterRegisteredMobile": "Enter your registered 10-digit mobile number to receive a 6-digit verification OTP.",
+    "sendOtp": "Send Reset OTP",
+    "enterOtp": "6-Digit Verification OTP",
+    "otpPlaceholder": "Enter 6-digit OTP",
+    "newPassword": "New Password",
+    "newPasswordPlaceholder": "Enter at least 6 characters",
+    "otpExpiresIn": "OTP expires in",
+    "resendOtp": "Resend OTP",
+    "saveNewPassword": "Save New Password",
+    "otpSuccessSent": "6-digit OTP generated and sent to mobile number.",
+    "passwordResetSuccess": "Password has been reset successfully! You can now log in."
   }
 }

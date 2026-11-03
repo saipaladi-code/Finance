@@ -360,9 +360,10 @@ export const CustomersPage: React.FC = () => {
                   <input
                     type="tel"
                     required
-                    placeholder={t('customers.enterMobile')}
+                    maxLength={10}
+                    placeholder="9876543210"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                     className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
                   />
                 </div>
@@ -421,9 +422,10 @@ export const CustomersPage: React.FC = () => {
                   <label className="block text-xs font-semibold text-slate-700 mb-1">{t('customers.guarantorPhone')}</label>
                   <input
                     type="tel"
-                    placeholder="Guarantor Phone"
+                    maxLength={10}
+                    placeholder="9876543210"
                     value={formData.guarantorPhone}
-                    onChange={(e) => setFormData({ ...formData, guarantorPhone: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, guarantorPhone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                     className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
                   />
                 </div>

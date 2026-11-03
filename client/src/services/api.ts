@@ -1,4 +1,32 @@
-const API_BASE = '/api';
+/**
+ * Smart Finance Management System API Client
+ * Supports dynamic production Render backend URL via VITE_API_URL
+ * and seamless fallback for local Vite proxy
+ */
+
+export const getApiBaseUrl = (): string => {
+  // 1. Explicit environment variable configured in Vercel or client .env
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl && typeof envUrl === 'string' && envUrl.trim() !== '') {
+    let clean = envUrl.trim().replace(/\/+$/, '');
+    if (!clean.endsWith('/api')) {
+      clean = `${clean}/api`;
+    }
+    return clean;
+  }
+
+  // 2. Allow runtime override from window (e.g. for testing / debugging)
+  if (typeof window !== 'undefined' && (window as any).__FINANCE_API_URL__) {
+    let custom = (window as any).__FINANCE_API_URL__.trim().replace(/\/+$/, '');
+    if (!custom.endsWith('/api')) {
+      custom = `${custom}/api`;
+    }
+    return custom;
+  }
+
+  // 3. Fallback to relative /api (handled by Vite proxy in dev or reverse proxy in prod)
+  return '/api';
+};
 
 export const getAuthToken = (): string | null => {
   return localStorage.getItem('token');
@@ -24,13 +52,38 @@ const request = async <T = any>(endpoint: string, options: RequestInit = {}): Pr
     headers.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers,
-    credentials: 'include',
-  });
+  const baseUrl = getApiBaseUrl();
+  let response: Response;
 
-  const data = await response.json().catch(() => ({ success: false, message: 'Server communication error.' }));
+  try {
+    response = await fetch(`${baseUrl}${endpoint}`, {
+      ...options,
+      headers,
+      credentials: 'include',
+    });
+  } catch (netErr: any) {
+    console.error('Network fetch failure connecting to backend:', baseUrl, endpoint, netErr);
+    throw new Error(
+      `Unable to connect to the backend server at ${baseUrl}. Please ensure your backend is running on Render and VITE_API_URL is properly configured in Vercel.`
+    );
+  }
+
+  let data: any;
+  const contentType = response.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    data = await response.json().catch(() => ({
+      success: false,
+      message: 'Failed to parse JSON response from server.',
+    }));
+  } else {
+    const text = await response.text();
+    data = {
+      success: false,
+      message: response.ok
+        ? text
+        : `Server communication error (HTTP ${response.status}). Please check backend API URL.`,
+    };
+  }
 
   if (!response.ok) {
     throw new Error(data.message || `Request failed with status ${response.status}`);
@@ -41,15 +94,21 @@ const request = async <T = any>(endpoint: string, options: RequestInit = {}): Pr
 
 export const api = {
   // Auth
-  login: (credentials: { email: string; password: string }) =>
+  login: (credentials: { mobileNumber?: string; phone?: string; email?: string; password: string }) =>
     request('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
   register: (userData: any) =>
     request('/auth/register', { method: 'POST', body: JSON.stringify(userData) }),
   logout: () => request('/auth/logout', { method: 'POST' }),
   getMe: () => request('/auth/me'),
-  forgotPassword: (email: string) =>
-    request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
-  resetPassword: (payload: { token: string; newPassword: string }) =>
+  forgotPassword: (payload: { mobileNumber?: string; phone?: string; email?: string } | string) => {
+    const body = typeof payload === 'string' ? { mobileNumber: payload } : payload;
+    return request('/auth/forgot-password', { method: 'POST', body: JSON.stringify(body) });
+  },
+  requestOtp: (mobileNumber: string) =>
+    request('/auth/request-otp', { method: 'POST', body: JSON.stringify({ mobileNumber }) }),
+  verifyOtpAndReset: (payload: { mobileNumber: string; otp: string; newPassword: string }) =>
+    request('/auth/verify-otp-reset', { method: 'POST', body: JSON.stringify(payload) }),
+  resetPassword: (payload: { token?: string; otp?: string; mobileNumber?: string; newPassword: string }) =>
     request('/auth/reset-password', { method: 'POST', body: JSON.stringify(payload) }),
   changePassword: (payload: { currentPassword: string; newPassword: string }) =>
     request('/auth/change-password', { method: 'POST', body: JSON.stringify(payload) }),
@@ -135,4 +194,3 @@ export const api = {
   getNotifications: () => request('/notifications'),
   markNotificationAsRead: (id: string) => request(`/notifications/${id}/read`, { method: 'PUT' }),
 };
-

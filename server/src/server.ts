@@ -5,7 +5,6 @@ import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
-import path from 'path';
 
 import { connectDB } from './config/db.js';
 import { autoSeedIfEmpty } from './utils/autoSeed.js';
@@ -32,25 +31,52 @@ app.use(
   })
 );
 
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://127.0.0.1:5173',
-  process.env.CLIENT_URL,
-].filter(Boolean) as string[];
+// Allowed origins parser (supports comma-separated origins)
+const parseAllowedOrigins = (): string[] => {
+  const envOrigins = (process.env.CLIENT_URL || '')
+    .split(',')
+    .map((url) => url.trim())
+    .filter(Boolean);
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, or same-origin)
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(null, true); // Permissive for local dev / testing
-      }
-    },
-    credentials: true,
-  })
-);
+  return [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:3000',
+    'http://localhost:4173',
+    ...envOrigins,
+  ];
+};
+
+const allowedOrigins = parseAllowedOrigins();
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser requests (mobile apps, Postman, server-to-server, curl)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    // Allow configured origins or any Vercel deployment preview / production domain
+    if (
+      allowedOrigins.includes(origin) ||
+      origin.endsWith('.vercel.app') ||
+      origin.includes('localhost') ||
+      origin.includes('127.0.0.1')
+    ) {
+      return callback(null, true);
+    }
+
+    // Permissive fallback so production Vercel frontend is never blocked
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Set-Cookie'],
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
@@ -59,14 +85,14 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Rate limiter for API routes
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // Limit each IP to 1000 requests per 15 minutes
+  max: 1000,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: 'Too many requests. Please try again later.' },
 });
 app.use('/api/', apiLimiter);
 
-// Ensure database connection before processing API requests (handles Vercel serverless cold starts)
+// Database connection verification middleware
 app.use(async (req, res, next) => {
   try {
     if (mongoose.connection.readyState < 1) {
@@ -80,6 +106,21 @@ app.use(async (req, res, next) => {
   }
 });
 
+// Root & Health check endpoints for Render/Vercel uptime monitoring
+const healthResponse = (req: express.Request, res: express.Response) => {
+  res.status(200).json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    service: 'Smart Finance Management System API',
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    environment: process.env.NODE_ENV || 'development',
+  });
+};
+
+app.get('/', healthResponse);
+app.get('/health', healthResponse);
+app.get('/api/health', healthResponse);
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
@@ -91,15 +132,6 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/notifications', notificationRoutes);
-
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    service: 'Smart Finance Management System API',
-  });
-});
 
 // Global error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

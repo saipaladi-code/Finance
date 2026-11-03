@@ -7,6 +7,7 @@ import { ChitMember } from '../models/ChitMember.js';
 import { generateCustomerId } from '../utils/idGenerator.js';
 import { roundMoney } from '../utils/financeCalculations.js';
 import { logAudit } from '../middleware/audit.js';
+import { normalizeIndianPhone } from '../utils/phoneUtils.js';
 
 export const getCustomers = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -126,7 +127,7 @@ export const createCustomer = async (req: Request, res: Response): Promise<void>
     const customer = await Customer.create({
       customerId,
       name: name.trim(),
-      phone: phone.trim(),
+      phone: normalizeIndianPhone(phone) || phone.trim(),
       email: email ? email.trim() : undefined,
       address: address.trim(),
       city: city ? city.trim() : '',
@@ -134,7 +135,7 @@ export const createCustomer = async (req: Request, res: Response): Promise<void>
       idProofNumber: idProofNumber ? idProofNumber.trim() : '',
       photoUrl: photoUrl || '',
       guarantorName: guarantorName ? guarantorName.trim() : '',
-      guarantorPhone: guarantorPhone ? guarantorPhone.trim() : '',
+      guarantorPhone: guarantorPhone ? normalizeIndianPhone(guarantorPhone) || guarantorPhone.trim() : '',
       notes: notes || '',
       status: 'active',
     });
@@ -168,7 +169,7 @@ export const updateCustomer = async (req: Request, res: Response): Promise<void>
     const { name, phone, email, address, city, idProofType, idProofNumber, photoUrl, guarantorName, guarantorPhone, notes, status } = req.body;
 
     if (name) customer.name = name.trim();
-    if (phone) customer.phone = phone.trim();
+    if (phone) customer.phone = normalizeIndianPhone(phone) || phone.trim();
     if (email !== undefined) customer.email = email ? email.trim() : undefined;
     if (address) customer.address = address.trim();
     if (city !== undefined) customer.city = city.trim();
@@ -176,7 +177,7 @@ export const updateCustomer = async (req: Request, res: Response): Promise<void>
     if (idProofNumber !== undefined) customer.idProofNumber = idProofNumber.trim();
     if (photoUrl !== undefined) customer.photoUrl = photoUrl;
     if (guarantorName !== undefined) customer.guarantorName = guarantorName.trim();
-    if (guarantorPhone !== undefined) customer.guarantorPhone = guarantorPhone.trim();
+    if (guarantorPhone !== undefined) customer.guarantorPhone = normalizeIndianPhone(guarantorPhone) || guarantorPhone.trim();
     if (notes !== undefined) customer.notes = notes;
     if (status && ['active', 'inactive', 'defaulter'].includes(status)) customer.status = status;
 

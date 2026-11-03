@@ -64,12 +64,12 @@ export const seedDatabase = async (disconnectAtEnd: boolean = true) => {
       name: 'R. Venkatesh (Admin)',
       email: 'admin@finance.local',
       password: 'Password@123',
-      phone: '+91 98401 23456',
+      phone: '9876543210',
       role: 'admin',
       isActive: true,
     });
 
-    console.log('👤 Admin user created: admin@finance.local / Password@123');
+    console.log('👤 Admin user created: Mobile: 9876543210 / Password@123');
 
     // 3. Create 10 Realistic Customers
     const customerData = [
